@@ -1,0 +1,3 @@
+# Its own workspace root: this repository is checked out inside satvis
+# (data/models), and pnpm would otherwise adopt it into satvis's workspace.
+packages: []

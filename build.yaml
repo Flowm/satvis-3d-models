@@ -1,0 +1,118 @@
+# The recipe `pnpm build` turns into the models and models.yaml. Edit this file;
+# models.yaml is written by the build.
+#
+# Each model is placed in the frame satvis draws a satellite in: glTF +Z along
+# the velocity, +Y to the zenith, +X to port. `rotate` steps name those axes
+# (velocity, port, zenith) and apply in order; `scale` converts to metres.
+#
+# A model lists every satellite it depicts, by NORAD id; satvis maps those ids to
+# the file. A NORAD id may appear under one model only. Files keep the name of
+# their first satellite.
+
+sources:
+  nasa:
+    name: NASA 3D Resources
+    url: https://github.com/nasa/NASA-3D-Resources
+    commit: 11ebb4ee043715aefbba6aeec8a61746fad67fa7
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+  tum:
+    name: TUM Chair of Astronautics (MOVE CubeSat team)
+    credit: Technical University of Munich
+    license: Unknown; carried over from the original satvis models.
+
+models:
+  # The disc floating ~40 m above the station is a stray object, not part of the
+  # ISS. 2.3825 scales the 45.54-unit truss to its 108.5 m span. Turned so the
+  # truss runs port to starboard, the US segment leads, the Russian segment
+  # trails, and the arrays face the zenith.
+  - file: ISS-(ZARYA).glb
+    satellites:
+      - { name: ISS (ZARYA), noradId: 25544 }
+    source: { id: nasa, path: "3D Models/International Space Station (ISS) (B)/International Space Station (ISS) (B).glb" }
+    removeNodes: [bendedtru1, bendedtru2, bendedtru3, bendedtrus, pCylinder1, pCylinder2, pCylinder8]
+    rotate:
+      - { axis: port, degrees: 90 }
+      - { axis: velocity, degrees: 90 }
+    scale: 2.3825
+
+  # Landsat 9 is a near-copy (same LEOStar-3 bus, OLI-2 and TIRS-2), so it shares
+  # the model. Already in metres: 12.3 m with the array deployed, against a
+  # published 13 m.
+  # OLI and TIRS sit on an optical bench at the forward end (USGS LSDS-1574), so
+  # the cylindrical bus runs along the velocity. The array pointing away from
+  # Earth, clear of the instruments, is inferred, not documented.
+  - file: LANDSAT-8.glb
+    satellites:
+      - { name: LANDSAT 8, noradId: 39084 }
+      - { name: LANDSAT 9, noradId: 49260 }
+    source: { id: nasa, path: "3D Models/Landsat 8/Landsat 8.glb" }
+    rotate:
+      - { axis: zenith, degrees: -90 }
+      - { axis: velocity, degrees: 180 }
+
+  # 0.919 brings the 5.53 m span to the documented 5.08 m (eoPortal). The round
+  # aperture on top of NASA's preview is the nadir-looking Cloud Profiling Radar,
+  # so the model flies upside down relative to it.
+  - file: CLOUDSAT.glb
+    satellites:
+      - { name: CLOUDSAT, noradId: 29107 }
+    source: { id: nasa, path: "3D Models/CloudSat (C)/CloudSat (C).glb" }
+    rotate:
+      - { axis: velocity, degrees: 180 }
+    scale: 0.919
+    stripFallbackTextures: true
+
+  # Already in metres. The ATLAS telescope faced starboard; it looks at nadir.
+  - file: ICESAT-2.glb
+    satellites:
+      - { name: ICESAT-2, noradId: 43613 }
+    source: { id: nasa, path: "3D Models/Ice, Clouds, and Land Elevation Satellite-2 (ICESat-2) (B)/Ice, Clouds, and Land Elevation Satellite-2 (ICESat-2) (B).glb" }
+    rotate:
+      - { axis: velocity, degrees: 90 }
+    stripFallbackTextures: true
+
+  # A GRACE model: GRACE-FO reused its design. 0.404 scales the 7.73-unit body to
+  # the 3.123 m length. Already oriented: the GPS antenna faces the zenith and the
+  # ranging horn the velocity.
+  - file: GRACE-FO-1.glb
+    satellites:
+      - { name: GRACE-FO 1, noradId: 43476 }
+      - { name: GRACE-FO 2, noradId: 43477 }
+    source: { id: nasa, path: "3D Models/Gravity Recovery and Climate Experiment (GRACE) (B)/Gravity Recovery and Climate Experiment (GRACE) (B).glb" }
+    scale: 0.404
+    stripFallbackTextures: true
+
+  # Not rebuilt: modelled in millimetres and scaled to metres in 4870515.
+  - file: MOVE-II.glb
+    satellites:
+      - { name: MOVE-II, noradId: 43780, decayed: 2025-07-13 }
+      - { name: MOVE-IIB, noradId: 44398, decayed: 2023-12-05 }
+    source: { id: tum }
+
+  - file: FIRST-MOVE.glb
+    satellites:
+      - { name: FIRST-MOVE, noradId: 39439, decayed: 2026-02-26 }
+    source: { id: tum }
+
+  # Generic fallbacks: no satellite maps to them yet. 0.0455 gives the CubeSats
+  # their 10 cm face (1U 11.8 cm tall, 2U 22.7 cm).
+  - file: generic/CUBESAT-1U.glb
+    role: Generic 1U CubeSat
+    source: { id: nasa, path: "3D Models/CubeSat - 1 RU Generic/CubeSat - 1 RU Generic.glb" }
+    scale: 0.0455
+
+  - file: generic/CUBESAT-2U.glb
+    role: Generic 2U CubeSat
+    source: { id: nasa, path: "3D Models/CubeSat - 2 RU Generic/CubeSat - 2 RU Generic.glb" }
+    scale: 0.0455
+
+  # 0.1155 scales the 268-unit span to the 31 m of a standard SSL-1300. Flipped
+  # so the feed tower and antenna deck face Earth; the arrays already run
+  # north-south, across the velocity.
+  - file: generic/SSL-1300.glb
+    role: Generic geostationary communications satellite (SSL-1300 bus)
+    source: { id: nasa, path: "3D Models/Space Systems Loral (SSL-1300)/Space Systems Loral (SSL-1300).glb" }
+    rotate:
+      - { axis: velocity, degrees: 180 }
+    scale: 0.1155

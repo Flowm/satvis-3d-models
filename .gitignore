@@ -1,0 +1,3 @@
+node_modules/
+# Sources fetched by `pnpm build`
+.cache/

@@ -1,0 +1,117 @@
+# Written by `pnpm build` from build.yaml; edit that instead.
+#
+# Every model in this repository and the satellites it depicts. satvis maps each
+# NORAD id to ./data/models/<file>. Dimensions are metres along the velocity,
+# across it and radially; the frame is described in build.yaml.
+
+models:
+  - file: ISS-(ZARYA).glb
+    satellites:
+      - { name: ISS (ZARYA), noradId: 25544 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 445536
+      dimensions: [ 71.333, 108.509, 14.577 ]
+      triangles: 169571
+      textures: []
+      extensions: [ KHR_draco_mesh_compression, KHR_materials_specular ]
+  - file: LANDSAT-8.glb
+    satellites:
+      - { name: LANDSAT 8, noradId: 39084 }
+      - { name: LANDSAT 9, noradId: 49260 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 335248
+      dimensions: [ 4.97, 12.259, 10.037 ]
+      triangles: 84087
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: CLOUDSAT.glb
+    satellites:
+      - { name: CLOUDSAT, noradId: 29107 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 140300
+      dimensions: [ 5.077, 2.212, 2.945 ]
+      triangles: 11204
+      textures: [ 1024x1024 image/webp, 512x512 image/webp, 1024x1024 image/webp ]
+      extensions: [ EXT_texture_webp, KHR_draco_mesh_compression ]
+  - file: ICESAT-2.glb
+    satellites:
+      - { name: ICESAT-2, noradId: 43613 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 178384
+      dimensions: [ 7.342, 2.315, 3.633 ]
+      triangles: 23662
+      textures: [ 512x512 image/webp, 1024x1024 image/webp ]
+      extensions: [ EXT_texture_webp, KHR_draco_mesh_compression ]
+  - file: GRACE-FO-1.glb
+    satellites:
+      - { name: GRACE-FO 1, noradId: 43476 }
+      - { name: GRACE-FO 2, noradId: 43477 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 140620
+      dimensions: [ 3.179, 1.943, 1.292 ]
+      triangles: 3921
+      textures: [ 1024x1024 image/webp, 720x480 image/webp ]
+      extensions: [ EXT_texture_webp, KHR_draco_mesh_compression, KHR_materials_specular ]
+  - file: MOVE-II.glb
+    satellites:
+      - { name: MOVE-II, noradId: 43780, decayed: 2025-07-13 }
+      - { name: MOVE-IIB, noradId: 44398, decayed: 2023-12-05 }
+    credit: Technical University of Munich
+    license: Unknown; carried over from the original satvis models.
+    measured:
+      bytes: 2966100
+      dimensions: [ 0.323, 0.323, 0.118 ]
+      triangles: 84788
+      textures: []
+      extensions: []
+  - file: FIRST-MOVE.glb
+    satellites:
+      - { name: FIRST-MOVE, noradId: 39439, decayed: 2026-02-26 }
+    credit: Technical University of Munich
+    license: Unknown; carried over from the original satvis models.
+    measured:
+      bytes: 7972640
+      dimensions: [ 0.299, 0.418, 0.306 ]
+      triangles: 215754
+      textures: []
+      extensions: []
+  - file: generic/CUBESAT-1U.glb
+    role: Generic 1U CubeSat
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 91732
+      dimensions: [ 0.1, 0.236, 0.118 ]
+      triangles: 23570
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: generic/CUBESAT-2U.glb
+    role: Generic 2U CubeSat
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 125648
+      dimensions: [ 0.101, 0.245, 0.228 ]
+      triangles: 36896
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: generic/SSL-1300.glb
+    role: Generic geostationary communications satellite (SSL-1300 bus)
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 511016
+      dimensions: [ 9.283, 30.992, 7.077 ]
+      triangles: 181048
+      textures: []
+      extensions: [ KHR_draco_mesh_compression, KHR_materials_specular ]
