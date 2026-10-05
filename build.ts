@@ -1,10 +1,5 @@
-// Builds the models from the recipe in build.yaml: fetches each sourced model at
-// its pinned commit, cleans it, puts it in the satellite frame at its real size,
-// and writes models.yaml, the manifest of what exists and which satellites use it.
-//
-//   pnpm build            every model with a source path
-//   pnpm build ISS        only files whose name contains "ISS"; every model is
-//                         still measured, so the manifest stays complete
+// Builds public/ and models.yaml from build.yaml (see README). A filter argument
+// rebuilds only matching files, but every model is still measured into the manifest.
 
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -63,9 +58,7 @@ const cacheDir = path.join(modelsDir, ".cache");
 // What satvis serves at /data/models/; a model's `file` is its path in here.
 const publicDir = path.join(modelsDir, "public");
 
-// The satellite frame's axes as glTF axes: Cesium turns glTF +Z into the
-// velocity, +X into port and +Y into the zenith. Rotations in the manifest are
-// written in the satellite frame, which is the one anyone placing a model thinks in.
+// Cesium flies glTF +Z along the velocity, +X to port and +Y to the zenith.
 const FRAME_AXIS_TO_GLTF: Record<Axis, vec3> = { velocity: [0, 0, 1], port: [1, 0, 0], zenith: [0, 1, 0] };
 
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({
@@ -160,15 +153,12 @@ async function build(model: RecipeModel, source: Source, sourcePath: string, out
     throw new Error(`${model.file}: removeNodes names no node ${[...unmatched].join(", ")}; has the source changed?`);
   }
 
-  // Reading keeps only the WebP of an EXT_texture_webp texture, so the PNG or
-  // JPEG beside it is left unreferenced and pruned. Every browser satvis runs in
-  // decodes WebP; the fallback only doubled the download.
+  // Reading keeps only the WebP, so prune() drops the PNG/JPEG fallback beside it.
   if (!model.stripFallbackTextures && root.listExtensionsUsed().some((ext) => ext.extensionName === "EXT_texture_webp")) {
     throw new Error(`${model.file}: the source uses EXT_texture_webp, so set stripFallbackTextures`);
   }
 
-  // One parent for the whole scene, carrying the frame and the scale, rather than
-  // baking them into vertices: the transform stays readable in any glTF viewer.
+  // On a parent node, not baked into vertices, so the transform stays readable.
   const scene = sceneOf(doc, model.file);
   const scale = model.scale ?? 1;
   const frame = doc
