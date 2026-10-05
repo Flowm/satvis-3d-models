@@ -5,9 +5,10 @@
 # the velocity, +Y to the zenith, +X to port. `rotate` steps name those axes
 # (velocity, port, zenith) and apply in order; `scale` converts to metres.
 #
-# A model lists every satellite it depicts, by NORAD id; satvis maps those ids to
-# the file. A NORAD id may appear under one model only. Files keep the name of
-# their first satellite.
+# A model's `file` is its path in public/, which satvis serves at /data/models/.
+# It lists every satellite it depicts, by NORAD id; satvis maps those ids to the
+# file. A NORAD id may appear under one model only. Files keep the name of their
+# first satellite.
 
 sources:
   nasa:

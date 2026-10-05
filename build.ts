@@ -60,6 +60,8 @@ const modelsDir = fileURLToPath(new URL(".", import.meta.url));
 const recipePath = path.join(modelsDir, "build.yaml");
 const manifestPath = path.join(modelsDir, "models.yaml");
 const cacheDir = path.join(modelsDir, ".cache");
+// What satvis serves at /data/models/; a model's `file` is its path in here.
+const publicDir = path.join(modelsDir, "public");
 
 // The satellite frame's axes as glTF axes: Cesium turns glTF +Z into the
 // velocity, +X into port and +Y into the zenith. Rotations in the manifest are
@@ -81,7 +83,7 @@ for (const model of recipe.models) {
   if (!source) {
     throw new Error(`${model.file}: unknown source ${JSON.stringify(model.source.id)}`);
   }
-  const output = path.join(modelsDir, model.file);
+  const output = path.join(publicDir, model.file);
   if (model.source.path && (!filter || model.file.includes(filter))) {
     await build(model, source, model.source.path, output);
   }
@@ -100,9 +102,9 @@ for (const model of recipe.models) {
 const header = [
   "# Written by `pnpm build` from build.yaml; edit that instead.",
   "#",
-  "# Every model in this repository and the satellites it depicts. satvis maps each",
-  "# NORAD id to ./data/models/<file>. Dimensions are metres along the velocity,",
-  "# across it and radially; the frame is described in build.yaml.",
+  "# Every model in public/ and the satellites it depicts. satvis serves public/ at",
+  "# /data/models/ and maps each NORAD id to its file. Dimensions are metres along",
+  "# the velocity, across it and radially; the frame is described in build.yaml.",
 ];
 // One line per satellite and per list of numbers or names, as in build.yaml.
 const FLOW_KEYS = new Set(["satellites", "dimensions", "textures", "extensions"]);

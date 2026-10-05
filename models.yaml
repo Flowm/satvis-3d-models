@@ -1,8 +1,8 @@
 # Written by `pnpm build` from build.yaml; edit that instead.
 #
-# Every model in this repository and the satellites it depicts. satvis maps each
-# NORAD id to ./data/models/<file>. Dimensions are metres along the velocity,
-# across it and radially; the frame is described in build.yaml.
+# Every model in public/ and the satellites it depicts. satvis serves public/ at
+# /data/models/ and maps each NORAD id to its file. Dimensions are metres along
+# the velocity, across it and radially; the frame is described in build.yaml.
 
 models:
   - file: ISS-(ZARYA).glb

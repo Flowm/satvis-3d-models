@@ -5,12 +5,15 @@ manifest that tells it which satellite uses which model.
 
 ## Files
 
+- `public/` — the models. satvis serves this folder at `/data/models/` and ships
+  nothing else from the repository; `public/generic/` holds fallback models no
+  satellite maps to yet.
 - `build.yaml` — the recipe, edited by hand: where each model comes from, what
   the build does to it, and the satellites it depicts, by NORAD id.
 - `models.yaml` — the manifest, written by the build: every model, its
-  satellites, credit and licence, and what it measures. satvis reads it to give
-  each listed satellite `./data/models/<file>`. Do not edit it.
-- `generic/` — fallback models no satellite maps to yet.
+  satellites, credit and licence, and what it measures. A model's `file` is its
+  path in `public/`; satvis reads the manifest to give each listed satellite that
+  file. Do not edit it.
 
 A model lists every satellite it depicts, so one file serves a constellation; a
 NORAD id may appear under one model only. Files keep the name of their first
