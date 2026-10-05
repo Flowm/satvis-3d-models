@@ -10,7 +10,7 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { type Document, NodeIO, type Scene, type vec3, type vec4 } from "@gltf-transform/core";
+import { type Document, NodeIO, Primitive, type Scene, type vec3, type vec4 } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import { dedup, draco, getBounds, prune } from "@gltf-transform/functions";
 import draco3d from "draco3dgltf";
@@ -150,10 +150,14 @@ async function build(model: RecipeModel, source: Source, sourcePath: string, out
   const doc = await io.readBinary(await fetchSource(source, sourcePath));
   const root = doc.getRoot();
 
+  const unmatched = new Set(model.removeNodes);
   for (const node of root.listNodes()) {
-    if (model.removeNodes?.includes(node.getName())) {
+    if (unmatched.delete(node.getName())) {
       node.dispose();
     }
+  }
+  if (unmatched.size > 0) {
+    throw new Error(`${model.file}: removeNodes names no node ${[...unmatched].join(", ")}; has the source changed?`);
   }
 
   // Reading keeps only the WebP of an EXT_texture_webp texture, so the PNG or
@@ -182,14 +186,15 @@ async function build(model: RecipeModel, source: Source, sourcePath: string, out
 }
 
 async function fetchSource(source: Source, sourcePath: string): Promise<Uint8Array> {
-  if (!source.commit) {
-    throw new Error(`${sourcePath}: its source has no commit to fetch from`);
+  const repo = source.url?.match(/^https:\/\/github\.com\/([^/]+\/[^/]+?)\/?$/)?.[1];
+  if (!repo || !source.commit) {
+    throw new Error(`${sourcePath}: its source needs a GitHub url and a commit to fetch from`);
   }
   const cached = path.join(cacheDir, source.commit, sourcePath);
   try {
     return await readFile(cached);
   } catch {
-    const url = `https://raw.githubusercontent.com/nasa/NASA-3D-Resources/${source.commit}/${sourcePath.split("/").map(encodeURIComponent).join("/")}`;
+    const url = `https://raw.githubusercontent.com/${repo}/${source.commit}/${sourcePath.split("/").map(encodeURIComponent).join("/")}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`${url}: HTTP ${response.status}`);
@@ -217,6 +222,18 @@ function multiply([ax, ay, az, aw]: vec4, [bx, by, bz, bw]: vec4): vec4 {
   return [aw * bx + ax * bw + ay * bz - az * by, aw * by - ax * bz + ay * bw + az * bx, aw * bz + ax * by - ay * bx + az * bw, aw * bw - ax * bx - ay * by - az * bz];
 }
 
+function trianglesOf(mode: number, count: number): number {
+  switch (mode) {
+    case Primitive.Mode.TRIANGLES:
+      return Math.floor(count / 3);
+    case Primitive.Mode.TRIANGLE_STRIP:
+    case Primitive.Mode.TRIANGLE_FAN:
+      return Math.max(0, count - 2);
+    default:
+      return 0;
+  }
+}
+
 async function measure(file: string): Promise<Measured> {
   // Measured, not rendered: an extension this reader lacks (FIRST-MOVE's
   // KHR_materials_common) need not stop it reading the geometry.
@@ -229,7 +246,7 @@ async function measure(file: string): Promise<Measured> {
   for (const node of root.listNodes()) {
     for (const primitive of node.getMesh()?.listPrimitives() ?? []) {
       const count = (primitive.getIndices() ?? primitive.getAttribute("POSITION"))?.getCount() ?? 0;
-      triangles += primitive.getMode() === 4 ? count / 3 : Math.max(0, count - 2);
+      triangles += trianglesOf(primitive.getMode(), count);
     }
   }
   const round = (value: number): number => Math.round(value * 1000) / 1000;
