@@ -69,22 +69,22 @@ models:
     credit: Technical University of Munich
     license: Unknown; carried over from the original satvis models.
     measured:
-      bytes: 2966100
+      bytes: 841032
       dimensions: [ 0.323, 0.323, 0.118 ]
       triangles: 84788
       textures: []
-      extensions: []
+      extensions: [ KHR_draco_mesh_compression ]
   - file: FIRST-MOVE.glb
     satellites:
       - { name: FIRST-MOVE, noradId: 39439, decayed: 2026-02-26 }
     credit: Technical University of Munich
     license: Unknown; carried over from the original satvis models.
     measured:
-      bytes: 7972640
+      bytes: 1026636
       dimensions: [ 0.299, 0.418, 0.306 ]
       triangles: 215754
       textures: []
-      extensions: []
+      extensions: [ KHR_draco_mesh_compression ]
   - file: generic/CUBESAT-1U.glb
     role: Generic 1U CubeSat
     credit: NASA

@@ -38,7 +38,8 @@ where they are checked.
 The build fetches each source into `.cache/`, removes the listed nodes, drops
 the PNG/JPEG fallbacks of WebP textures, wraps the scene in one node carrying
 the rotation and scale, writes it Draco-compressed, and measures every model
-into `models.yaml`. Models without a source path are measured, not rebuilt.
+into `models.yaml`. A model without a source path is kept as it is and only
+measured.
 
 To inspect the result, open `/models.html` in a satvis dev server.
 

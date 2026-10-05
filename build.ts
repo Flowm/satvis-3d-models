@@ -235,11 +235,7 @@ function trianglesOf(mode: number, count: number): number {
 }
 
 async function measure(file: string): Promise<Measured> {
-  // Measured, not rendered: an extension this reader lacks (FIRST-MOVE's
-  // KHR_materials_common) need not stop it reading the geometry.
-  const json = await io.binaryToJSON(await readFile(file));
-  delete json.json.extensionsRequired;
-  const doc = await io.readJSON(json);
+  const doc = await io.read(file);
   const root = doc.getRoot();
   const { min, max } = getBounds(sceneOf(doc, file));
   let triangles = 0;

@@ -84,7 +84,8 @@ models:
     scale: 0.404
     stripFallbackTextures: true
 
-  # Not rebuilt: modelled in millimetres and scaled to metres in 4870515.
+  # Draco-compressed once from the TUM originals, which are not kept: no source
+  # path, so these are measured but not rebuilt.
   - file: MOVE-II.glb
     satellites:
       - { name: MOVE-II, noradId: 43780, decayed: 2025-07-13 }
