@@ -1,17 +1,21 @@
 {
   "name": "satvis-3d-models",
   "private": true,
-  "description": "Satellite 3D models for satvis, built from models.json",
+  "description": "Satellite 3D models for satvis, built from build.yaml",
   "license": "SEE LICENSE IN README.md",
   "type": "module",
   "scripts": {
-    "build": "node build.mjs"
+    "build": "node build.ts",
+    "check": "tsc"
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.5.1",
     "@gltf-transform/extensions": "^4.5.1",
     "@gltf-transform/functions": "^4.5.1",
+    "@types/draco3dgltf": "^1.4.3",
+    "@types/node": "^24.19.1",
     "draco3dgltf": "^1.5.7",
+    "typescript": "^6.0.3",
     "yaml": "^2.9.1"
   },
   "packageManager": "pnpm@11.9.0"

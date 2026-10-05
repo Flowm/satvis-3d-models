@@ -10,11 +10,51 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { NodeIO } from "@gltf-transform/core";
+import { type Document, NodeIO, type Scene, type vec3, type vec4 } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import { dedup, draco, getBounds, prune } from "@gltf-transform/functions";
 import draco3d from "draco3dgltf";
-import YAML from "yaml";
+import YAML, { isMap, isScalar, isSeq } from "yaml";
+
+type Axis = "velocity" | "port" | "zenith";
+
+interface Satellite {
+  name: string;
+  noradId: number;
+  decayed?: string | boolean;
+}
+
+interface Source {
+  name: string;
+  url?: string;
+  commit?: string;
+  credit: string;
+  license: string;
+}
+
+interface RecipeModel {
+  file: string;
+  satellites?: Satellite[];
+  role?: string;
+  source: { id: string; path?: string };
+  removeNodes?: string[];
+  rotate?: Array<{ axis: Axis; degrees: number }>;
+  scale?: number;
+  stripFallbackTextures?: boolean;
+}
+
+interface Recipe {
+  sources: Record<string, Source>;
+  models: RecipeModel[];
+}
+
+interface Measured {
+  bytes: number;
+  dimensions: number[];
+  triangles: number;
+  textures: string[];
+  extensions: string[];
+}
 
 const modelsDir = fileURLToPath(new URL(".", import.meta.url));
 const recipePath = path.join(modelsDir, "build.yaml");
@@ -24,23 +64,26 @@ const cacheDir = path.join(modelsDir, ".cache");
 // The satellite frame's axes as glTF axes: Cesium turns glTF +Z into the
 // velocity, +X into port and +Y into the zenith. Rotations in the manifest are
 // written in the satellite frame, which is the one anyone placing a model thinks in.
-const FRAME_AXIS_TO_GLTF = { velocity: [0, 0, 1], port: [1, 0, 0], zenith: [0, 1, 0] };
+const FRAME_AXIS_TO_GLTF: Record<Axis, vec3> = { velocity: [0, 0, 1], port: [1, 0, 0], zenith: [0, 1, 0] };
 
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({
   "draco3d.decoder": await draco3d.createDecoderModule(),
   "draco3d.encoder": await draco3d.createEncoderModule(),
 });
 
-const recipe = YAML.parse(await readFile(recipePath, "utf8"));
+const recipe = YAML.parse(await readFile(recipePath, "utf8")) as Recipe;
 const filter = process.argv[2];
 checkSatellitesUnique(recipe.models);
 
 const entries = [];
 for (const model of recipe.models) {
   const source = recipe.sources[model.source.id];
+  if (!source) {
+    throw new Error(`${model.file}: unknown source ${JSON.stringify(model.source.id)}`);
+  }
   const output = path.join(modelsDir, model.file);
   if (model.source.path && (!filter || model.file.includes(filter))) {
-    await build(model, source, output);
+    await build(model, source, model.source.path, output);
   }
   const measured = await measure(output);
   entries.push({
@@ -62,13 +105,16 @@ const header = [
   "# across it and radially; the frame is described in build.yaml.",
 ];
 // One line per satellite and per list of numbers or names, as in build.yaml.
+const FLOW_KEYS = new Set(["satellites", "dimensions", "textures", "extensions"]);
 const manifest = new YAML.Document({ models: entries });
 YAML.visit(manifest, {
   Pair(_, pair) {
-    if (["satellites", "dimensions", "textures", "extensions"].includes(pair.key.value)) {
+    if (isScalar(pair.key) && typeof pair.key.value === "string" && FLOW_KEYS.has(pair.key.value) && isSeq(pair.value)) {
       pair.value.flow = pair.key.value !== "satellites";
       for (const item of pair.value.items) {
-        item.flow = true;
+        if (isMap(item)) {
+          item.flow = true;
+        }
       }
     }
   },
@@ -76,20 +122,30 @@ YAML.visit(manifest, {
 await writeFile(manifestPath, `${header.join("\n")}\n\n${manifest.toString({ lineWidth: 0 })}`);
 
 // satvis gives a satellite one model; two claiming it is a recipe mistake.
-function checkSatellitesUnique(models) {
-  const claimed = new Map();
+function checkSatellitesUnique(models: RecipeModel[]): void {
+  const claimed = new Map<number, string>();
   for (const model of models) {
     for (const { noradId } of model.satellites ?? []) {
-      if (claimed.has(noradId)) {
-        throw new Error(`NORAD ${noradId} is claimed by both ${claimed.get(noradId)} and ${model.file}`);
+      const previous = claimed.get(noradId);
+      if (previous !== undefined) {
+        throw new Error(`NORAD ${noradId} is claimed by both ${previous} and ${model.file}`);
       }
       claimed.set(noradId, model.file);
     }
   }
 }
 
-async function build(model, source, output) {
-  const doc = await io.readBinary(await fetchSource(source, model.source.path));
+function sceneOf(doc: Document, file: string): Scene {
+  const root = doc.getRoot();
+  const scene = root.getDefaultScene() ?? root.listScenes()[0];
+  if (!scene) {
+    throw new Error(`${file}: no scene`);
+  }
+  return scene;
+}
+
+async function build(model: RecipeModel, source: Source, sourcePath: string, output: string): Promise<void> {
+  const doc = await io.readBinary(await fetchSource(source, sourcePath));
   const root = doc.getRoot();
 
   for (const node of root.listNodes()) {
@@ -107,11 +163,12 @@ async function build(model, source, output) {
 
   // One parent for the whole scene, carrying the frame and the scale, rather than
   // baking them into vertices: the transform stays readable in any glTF viewer.
-  const scene = root.getDefaultScene() ?? root.listScenes()[0];
+  const scene = sceneOf(doc, model.file);
+  const scale = model.scale ?? 1;
   const frame = doc
     .createNode("satvis-frame")
     .setRotation(rotation(model.rotate ?? []))
-    .setScale([model.scale ?? 1, model.scale ?? 1, model.scale ?? 1]);
+    .setScale([scale, scale, scale]);
   for (const child of scene.listChildren()) {
     frame.addChild(child);
   }
@@ -122,7 +179,10 @@ async function build(model, source, output) {
   await writeFile(output, await io.writeBinary(doc));
 }
 
-async function fetchSource(source, sourcePath) {
+async function fetchSource(source: Source, sourcePath: string): Promise<Uint8Array> {
+  if (!source.commit) {
+    throw new Error(`${sourcePath}: its source has no commit to fetch from`);
+  }
   const cached = path.join(cacheDir, source.commit, sourcePath);
   try {
     return await readFile(cached);
@@ -140,8 +200,8 @@ async function fetchSource(source, sourcePath) {
 }
 
 /** `[{ axis: "zenith", degrees: 90 }, …]`, applied in order, as a glTF quaternion. */
-function rotation(steps) {
-  let q = [0, 0, 0, 1];
+function rotation(steps: NonNullable<RecipeModel["rotate"]>): vec4 {
+  let q: vec4 = [0, 0, 0, 1];
   for (const { axis, degrees } of steps) {
     const [x, y, z] = FRAME_AXIS_TO_GLTF[axis];
     const half = (degrees * Math.PI) / 360;
@@ -151,19 +211,18 @@ function rotation(steps) {
   return q;
 }
 
-function multiply([ax, ay, az, aw], [bx, by, bz, bw]) {
+function multiply([ax, ay, az, aw]: vec4, [bx, by, bz, bw]: vec4): vec4 {
   return [aw * bx + ax * bw + ay * bz - az * by, aw * by - ax * bz + ay * bw + az * bx, aw * bz + ax * by - ay * bx + az * bw, aw * bw - ax * bx - ay * by - az * bz];
 }
 
-async function measure(file) {
+async function measure(file: string): Promise<Measured> {
   // Measured, not rendered: an extension this reader lacks (FIRST-MOVE's
   // KHR_materials_common) need not stop it reading the geometry.
   const json = await io.binaryToJSON(await readFile(file));
   delete json.json.extensionsRequired;
   const doc = await io.readJSON(json);
   const root = doc.getRoot();
-  const scene = root.getDefaultScene() ?? root.listScenes()[0];
-  const { min, max } = getBounds(scene);
+  const { min, max } = getBounds(sceneOf(doc, file));
   let triangles = 0;
   for (const node of root.listNodes()) {
     for (const primitive of node.getMesh()?.listPrimitives() ?? []) {
@@ -171,7 +230,7 @@ async function measure(file) {
       triangles += primitive.getMode() === 4 ? count / 3 : Math.max(0, count - 2);
     }
   }
-  const round = (value) => Math.round(value * 1000) / 1000;
+  const round = (value: number): number => Math.round(value * 1000) / 1000;
   return {
     bytes: (await stat(file)).size,
     // Along the velocity, across it (port to starboard), and radially.

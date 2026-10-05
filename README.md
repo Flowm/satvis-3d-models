@@ -26,7 +26,11 @@ that frame (`velocity`, `port`, `zenith`) and applied in order.
 pnpm install
 pnpm build          # every model with a source
 pnpm build ISS      # rebuild only files whose name contains "ISS"
+pnpm check          # type-check build.ts
 ```
+
+`build.ts` runs on Node 24 directly, which strips the types; `pnpm check` is
+where they are checked.
 
 The build fetches each source into `.cache/`, removes the listed nodes, drops
 the PNG/JPEG fallbacks of WebP textures, wraps the scene in one node carrying
