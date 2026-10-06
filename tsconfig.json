@@ -14,7 +14,8 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "verbatimModuleSyntax": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true
   },
-  "include": ["build.ts"]
+  "include": ["build.ts", "generators/*.ts"]
 }

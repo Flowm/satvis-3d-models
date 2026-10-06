@@ -7,9 +7,11 @@ import { fileURLToPath } from "node:url";
 
 import { type Document, Node, NodeIO, Primitive, type Scene, type vec3, type vec4 } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
-import { dedup, draco, flatten, getBounds, prune, transformMesh } from "@gltf-transform/functions";
+import { dedup, draco, flatten, getBounds, join, prune, transformMesh } from "@gltf-transform/functions";
 import draco3d from "draco3dgltf";
 import YAML, { isMap, isScalar, isSeq } from "yaml";
+
+import { starlinkV1, starlinkV2Mini, starlinkV2MiniDirectToCell, starlinkV3 } from "./generators/starlink.ts";
 
 type Axis = "velocity" | "port" | "zenith";
 
@@ -30,8 +32,11 @@ interface Source {
 interface RecipeModel {
   file: string;
   satellites?: Satellite[];
+  /** GCAT bus names: every satellite of these designs is depicted (ADR 0007 in satvis). */
+  buses?: string[];
   role?: string;
-  source: { id: string; path?: string };
+  /** A fetched file at `path`, or a model built by one of GENERATORS. */
+  source: { id: string; path?: string; generator?: string };
   removeNodes?: string[];
   rotate?: Array<{ axis: Axis; degrees: number }>;
   scale?: number;
@@ -58,6 +63,14 @@ const cacheDir = path.join(modelsDir, ".cache");
 // What satvis serves at /data/models/; a model's `file` is its path in here.
 const publicDir = path.join(modelsDir, "public");
 
+/** Models built from code rather than fetched, by the name a recipe's source gives. */
+const GENERATORS: Record<string, () => Document> = {
+  "starlink-v1": starlinkV1,
+  "starlink-v2-mini": starlinkV2Mini,
+  "starlink-v2-mini-direct-to-cell": starlinkV2MiniDirectToCell,
+  "starlink-v3": starlinkV3,
+};
+
 // Cesium flies glTF +Z along the velocity, +X to port and +Y to the zenith.
 const FRAME_AXIS_TO_GLTF: Record<Axis, vec3> = { velocity: [0, 0, 1], port: [1, 0, 0], zenith: [0, 1, 0] };
 
@@ -77,13 +90,14 @@ for (const model of recipe.models) {
     throw new Error(`${model.file}: unknown source ${JSON.stringify(model.source.id)}`);
   }
   const output = path.join(publicDir, model.file);
-  if (model.source.path && (!filter || model.file.includes(filter))) {
-    await build(model, source, model.source.path, output);
+  if ((model.source.path || model.source.generator) && (!filter || model.file.includes(filter))) {
+    await build(model, source, output);
   }
   const measured = await measure(output);
   entries.push({
     file: model.file,
     ...(model.satellites ? { satellites: model.satellites } : {}),
+    ...(model.buses ? { buses: model.buses } : {}),
     ...(model.role ? { role: model.role } : {}),
     credit: source.credit,
     license: source.license,
@@ -116,16 +130,18 @@ YAML.visit(manifest, {
 });
 await writeFile(manifestPath, `${header.join("\n")}\n\n${manifest.toString({ lineWidth: 0 })}`);
 
-// satvis gives a satellite one model; two claiming it is a recipe mistake.
+// satvis gives a satellite one model, and a bus one model; two claiming either is a
+// recipe mistake.
 function checkSatellitesUnique(models: RecipeModel[]): void {
-  const claimed = new Map<number, string>();
+  const claimed = new Map<string, string>();
   for (const model of models) {
-    for (const { noradId } of model.satellites ?? []) {
-      const previous = claimed.get(noradId);
+    const keys = [...(model.satellites ?? []).map(({ noradId }) => `NORAD ${noradId}`), ...(model.buses ?? []).map((bus) => `Bus ${JSON.stringify(bus)}`)];
+    for (const key of keys) {
+      const previous = claimed.get(key);
       if (previous !== undefined) {
-        throw new Error(`NORAD ${noradId} is claimed by both ${previous} and ${model.file}`);
+        throw new Error(`${key} is claimed by both ${previous} and ${model.file}`);
       }
-      claimed.set(noradId, model.file);
+      claimed.set(key, model.file);
     }
   }
 }
@@ -139,8 +155,8 @@ function sceneOf(doc: Document, file: string): Scene {
   return scene;
 }
 
-async function build(model: RecipeModel, source: Source, sourcePath: string, output: string): Promise<void> {
-  const doc = await io.readBinary(await fetchSource(source, sourcePath));
+async function build(model: RecipeModel, source: Source, output: string): Promise<void> {
+  const doc = await load(model, source);
   const root = doc.getRoot();
 
   const unmatched = new Set(model.removeNodes);
@@ -185,6 +201,10 @@ async function build(model: RecipeModel, source: Source, sourcePath: string, out
     node.setMatrix([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
   }
 
+  // A generator makes one mesh per part; joined, a model is one draw call per material.
+  if (model.source.generator) {
+    await doc.transform(join({ keepNamed: false }));
+  }
   await doc.transform(prune(), dedup(), draco());
   await mkdir(path.dirname(output), { recursive: true });
   await writeFile(output, await io.writeBinary(doc));
@@ -219,6 +239,19 @@ function disposeRestPoseAnimations(doc: Document, file: string): void {
     }
     animation.dispose();
   }
+}
+
+/** The source document: generated, or fetched and read. */
+async function load(model: RecipeModel, source: Source): Promise<Document> {
+  const { generator, path: sourcePath } = model.source;
+  if (generator !== undefined) {
+    const generate = GENERATORS[generator];
+    if (!generate) {
+      throw new Error(`${model.file}: unknown generator ${JSON.stringify(generator)}`);
+    }
+    return generate();
+  }
+  return io.readBinary(await fetchSource(source, sourcePath!));
 }
 
 async function fetchSource(source: Source, sourcePath: string): Promise<Uint8Array> {

@@ -134,6 +134,51 @@ models:
       triangles: 66962
       textures: []
       extensions: [ KHR_draco_mesh_compression ]
+  - file: STARLINK-V1.glb
+    buses:
+      - Starlink
+    credit: satvis
+    license: MIT, as satvis. Built from published dimensions, cited in each generator.
+    measured:
+      bytes: 7872
+      dimensions: [ 3.7, 1.3, 8.61 ]
+      triangles: 680
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: STARLINK-V2-MINI.glb
+    buses:
+      - Starlink V2M
+      - Starlink V2MO
+    credit: satvis
+    license: MIT, as satvis. Built from published dimensions, cited in each generator.
+    measured:
+      bytes: 9996
+      dimensions: [ 4.92, 33.86, 0.59 ]
+      triangles: 1560
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: STARLINK-V2-MINI-DTC.glb
+    buses:
+      - Starlink V2MD
+    credit: satvis
+    license: MIT, as satvis. Built from published dimensions, cited in each generator.
+    measured:
+      bytes: 10048
+      dimensions: [ 4.92, 33.86, 0.59 ]
+      triangles: 1572
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: STARLINK-V3.glb
+    buses:
+      - Starlink V3
+    credit: satvis
+    license: MIT, as satvis. Built from published dimensions, cited in each generator.
+    measured:
+      bytes: 14000
+      dimensions: [ 7.22, 46.66, 0.67 ]
+      triangles: 4132
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
   - file: MOVE-II.glb
     satellites:
       - { name: MOVE-II, noradId: 43780, decayed: 2025-07-13 }
