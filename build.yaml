@@ -84,6 +84,88 @@ models:
     scale: 0.404
     stripFallbackTextures: true
 
+  # NOAA 20 shares Suomi NPP's BCP-2000 bus and instruments. NOAA 21 is on a
+  # different bus (LEOStar-3) and only stands in. Already in metres: the bus is
+  # 4.2 m long, as published (eoPortal). The 1.3 m end cannot carry five
+  # instruments, so the long axis runs along the track and the instrument deck
+  # faces nadir. The single wing turns once per orbit, so it extends across the
+  # track, on the anti-sun side (eoPortal): starboard, as the 13:30 ascending
+  # node keeps the sun to port.
+  - file: SUOMI-NPP.glb
+    satellites:
+      - { name: SUOMI NPP, noradId: 37849 }
+      - { name: NOAA 20 (JPSS-1), noradId: 43013 }
+      - { name: NOAA 21 (JPSS-2), noradId: 54234 }
+    source: { id: nasa, path: "3D Models/Suomi National Polar-orbiting Partnership (Suomi NPP)/Suomi National Polar-orbiting Partnership (Suomi NPP).glb" }
+    rotate:
+      - { axis: velocity, degrees: 90 }
+      - { axis: zenith, degrees: -90 }
+    stripFallbackTextures: true
+
+  # The GOES-R series: one wing with the sun-pointing platform on its yoke, and the
+  # magnetometer boom. 83 scales the 0.096-unit boom to its 8 m (NASA GSFC, "An
+  # Overview of the Design and Development of the GOES R-Series Space Segment").
+  # Flipped so the instrument deck faces Earth and the apogee-engine deck faces
+  # away. The wing runs north-south; which side is not documented.
+  - file: GOES-16.glb
+    satellites:
+      - { name: GOES 16, noradId: 41866 }
+      - { name: GOES 17, noradId: 43226 }
+      - { name: GOES 18, noradId: 51850 }
+      - { name: GOES 19, noradId: 60133 }
+    source: { id: nasa, path: "3D Models/Geostationary Operational Environmental Satellites/Geostationary Operational Environmental Satellites.glb" }
+    rotate:
+      - { axis: velocity, degrees: 180 }
+    scale: 83
+
+  # CYGFM06 reentered in 2024. 1.05 brings the 1.59 m span to the published
+  # 1.67 m (eoPortal). Turned so the patch antennas face nadir and the arrays,
+  # fixed across the track, face the zenith.
+  - file: CYGFM01.glb
+    satellites:
+      - { name: CYGFM01, noradId: 41887 }
+      - { name: CYGFM02, noradId: 41886 }
+      - { name: CYGFM03, noradId: 41891 }
+      - { name: CYGFM04, noradId: 41885 }
+      - { name: CYGFM05, noradId: 41884 }
+      - { name: CYGFM07, noradId: 41890 }
+      - { name: CYGFM08, noradId: 41888 }
+    source: { id: nasa, path: "3D Models/Cyclone Global Navigation Satellite System (CYGNSS)/Cyclone Global Navigation Satellite System (CYGNSS).glb" }
+    rotate:
+      - { axis: port, degrees: 90 }
+    scale: 1.05
+    stripFallbackTextures: true
+
+  # The first generation, built by TRW; TDRS 1 and 4 are retired. Already in
+  # metres: the dishes measure 5.1 m against 4.9 m and span 13.1 m against 13.4 m,
+  # though the arrays reach 21 m against a published 17.4 m. Flipped so the
+  # single-access dishes face Earth, where the satellites they relay fly; the
+  # arrays already run north-south.
+  - file: TDRS-3.glb
+    satellites:
+      - { name: TDRS 3, noradId: 19548 }
+      - { name: TDRS 5, noradId: 21639 }
+      - { name: TDRS 6, noradId: 22314 }
+      - { name: TDRS 7, noradId: 23613 }
+    source: { id: nasa, path: "3D Models/Tracking and Data Relay Satellites (TDRS) (B)/Tracking and Data Relay Satellites (TDRS) (B).glb" }
+    rotate:
+      - { axis: velocity, degrees: 180 }
+    stripFallbackTextures: true
+
+  # The Boeing 601 generations with springback dishes; TDRS 9 and 10 are retired.
+  # 0.2234 scales the 94.4-unit span to TDRS 11's 21.1 m, which leaves the dishes
+  # 6.5 m across against 4.6 m. Flipped like the first generation.
+  - file: TDRS-8.glb
+    satellites:
+      - { name: TDRS 8, noradId: 26388 }
+      - { name: TDRS 11, noradId: 39070 }
+      - { name: TDRS 12, noradId: 39504 }
+      - { name: TDRS 13, noradId: 42915 }
+    source: { id: nasa, path: "3D Models/Tracking and Data Relay Satellites (TRDS) (E)/Tracking and Data Relay Satellites (TRDS) (E).glb" }
+    rotate:
+      - { axis: velocity, degrees: 180 }
+    scale: 0.2234
+
   # Draco-compressed once from the TUM originals, which are not kept: no source
   # path, so these are measured but not rebuilt.
   - file: MOVE-II.glb
