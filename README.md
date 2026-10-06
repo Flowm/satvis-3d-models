@@ -34,7 +34,12 @@ pnpm install
 pnpm build          # every model with a source
 pnpm build ISS      # rebuild only files whose name contains "ISS"
 pnpm check          # type-check build.ts and the generators
+pnpm check-buses    # list everything in GCAT on each bus build.yaml names
 ```
+
+Name a bus in `build.yaml` only when everything GCAT puts on it is the design the
+model shows. `pnpm check-buses` lists each named bus's objects by name, mass and
+launch years, decayed ones included; GCAT is cached in `.cache/gcat/`.
 
 `build.ts` runs on Node 24 directly, which strips the types; `pnpm check` is
 where they are checked.

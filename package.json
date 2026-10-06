@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "node build.ts",
-    "check": "tsc"
+    "check": "tsc",
+    "check-buses": "node check-buses.ts"
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.5.1",

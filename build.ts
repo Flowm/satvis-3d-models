@@ -11,6 +11,17 @@ import { dedup, draco, flatten, getBounds, join, prune, transformMesh } from "@g
 import draco3d from "draco3dgltf";
 import YAML, { isMap, isScalar, isSeq } from "yaml";
 
+import { beidou3Cast, beidou3Secm, galileoFoc, glonassM, gpsIIF, gpsIII, gpsIIR } from "./generators/gnss.ts";
+import { globalstar2 } from "./generators/globalstar.ts";
+import { guowang } from "./generators/guowang.ts";
+import { iceye } from "./generators/iceye.ts";
+import { iridiumNext } from "./generators/iridium.ts";
+import { keplerTranche1, keplerTranche1Safire } from "./generators/kepler.ts";
+import { kuiper } from "./generators/kuiper.ts";
+import { o3b, o3bMpower } from "./generators/o3b.ts";
+import { oneweb } from "./generators/oneweb.ts";
+import { pelican, skySat, superDove } from "./generators/planet.ts";
+import { qianfan } from "./generators/qianfan.ts";
 import { starlinkV1, starlinkV2Mini, starlinkV2MiniDirectToCell, starlinkV3 } from "./generators/starlink.ts";
 
 type Axis = "velocity" | "port" | "zenith";
@@ -63,12 +74,36 @@ const cacheDir = path.join(modelsDir, ".cache");
 // What satvis serves at /data/models/; a model's `file` is its path in here.
 const publicDir = path.join(modelsDir, "public");
 
-/** Models built from code rather than fetched, by the name a recipe's source gives. */
+/**
+ * Models built from code rather than fetched, by the name a recipe's source gives: the
+ * file the model is written to, in lower case and without its extension.
+ */
 const GENERATORS: Record<string, () => Document> = {
   "starlink-v1": starlinkV1,
   "starlink-v2-mini": starlinkV2Mini,
   "starlink-v2-mini-direct-to-cell": starlinkV2MiniDirectToCell,
   "starlink-v3": starlinkV3,
+  oneweb,
+  kuiper,
+  qianfan,
+  guowang,
+  "glonass-m": glonassM,
+  "beidou-3-cast": beidou3Cast,
+  "beidou-3-secm": beidou3Secm,
+  "gps-iir": gpsIIR,
+  "gps-iif": gpsIIF,
+  "gps-iii": gpsIII,
+  "galileo-foc": galileoFoc,
+  "iridium-next": iridiumNext,
+  iceye,
+  "globalstar-2": globalstar2,
+  o3b,
+  "o3b-mpower": o3bMpower,
+  superdove: superDove,
+  skysat: skySat,
+  pelican,
+  "kepler-tranche-1": keplerTranche1,
+  "kepler-tranche-1-safire": keplerTranche1Safire,
 };
 
 // Cesium flies glTF +Z along the velocity, +X to port and +Y to the zenith.
@@ -82,6 +117,7 @@ const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies(
 const recipe = YAML.parse(await readFile(recipePath, "utf8")) as Recipe;
 const filter = process.argv[2];
 checkSatellitesUnique(recipe.models);
+checkSources(recipe);
 
 const entries = [];
 for (const model of recipe.models) {
@@ -130,8 +166,10 @@ YAML.visit(manifest, {
 });
 await writeFile(manifestPath, `${header.join("\n")}\n\n${manifest.toString({ lineWidth: 0 })}`);
 
-// satvis gives a satellite one model, and a bus one model; two claiming either is a
-// recipe mistake.
+/**
+ * satvis gives a satellite one model, and a bus one model; two claiming either is a
+ * recipe mistake.
+ */
 function checkSatellitesUnique(models: RecipeModel[]): void {
   const claimed = new Map<string, string>();
   for (const model of models) {
@@ -146,6 +184,25 @@ function checkSatellitesUnique(models: RecipeModel[]): void {
   }
 }
 
+/**
+ * Every model's source, checked before a filtered build skips any: a known source, a
+ * generator that exists, and not both a generator and a path.
+ */
+function checkSources(recipe: Recipe): void {
+  for (const model of recipe.models) {
+    const { id, path: sourcePath, generator } = model.source;
+    if (!recipe.sources[id]) {
+      throw new Error(`${model.file}: unknown source ${JSON.stringify(id)}`);
+    }
+    if (generator !== undefined && sourcePath !== undefined) {
+      throw new Error(`${model.file}: a source has a generator or a path, not both`);
+    }
+    if (generator !== undefined && !GENERATORS[generator]) {
+      throw new Error(`${model.file}: unknown generator ${JSON.stringify(generator)}`);
+    }
+  }
+}
+
 function sceneOf(doc: Document, file: string): Scene {
   const root = doc.getRoot();
   const scene = root.getDefaultScene() ?? root.listScenes()[0];
@@ -155,6 +212,11 @@ function sceneOf(doc: Document, file: string): Scene {
   return scene;
 }
 
+/**
+ * Builds one model into `output`: loads it, removes the listed nodes, bakes every
+ * transform into the vertices, joins a generated model's parts, and writes it
+ * Draco-compressed.
+ */
 async function build(model: RecipeModel, source: Source, output: string): Promise<void> {
   const doc = await load(model, source);
   const root = doc.getRoot();

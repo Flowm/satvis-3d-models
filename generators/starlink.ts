@@ -19,32 +19,13 @@
 
 import type { Document } from "@gltf-transform/core";
 
-import { type Finish, Model, type Placement } from "./parts.ts";
+import { addArray, addDish, addThruster, addWings, material } from "./assembly.ts";
+import { type Finish, Model } from "./parts.ts";
 
-const FINISHES = {
-  /** Bare aluminium, as the bus frame, spine and array stiffeners render. */
-  aluminium: { color: [0.62, 0.63, 0.65], metallic: 0.9, roughness: 0.35 },
-  /** The dark panels on the bus top. */
-  deck: { color: [0.04, 0.04, 0.05], metallic: 0.2, roughness: 0.6 },
-  /** The dielectric mirror film on the Earth-facing side, from v1.5 on. */
-  mirror: { color: [0.9, 0.9, 0.92], metallic: 1, roughness: 0.08 },
-  /** User phased arrays, grey tiles under the film. */
-  phasedArray: { color: [0.32, 0.33, 0.35], metallic: 0.6, roughness: 0.3 },
-  /** Cells and backsheet, both dark. */
-  cells: { color: [0.03, 0.045, 0.12], metallic: 0.3, roughness: 0.45 },
-  /** Booms, laser terminals and thrusters: "painted matte black" (Kandula et al.). */
-  black: { color: [0.015, 0.015, 0.015], metallic: 0, roughness: 0.9 },
-  /** v1's "white diffuse parabolic antennas" (SpaceX, 2020). */
-  white: { color: [0.85, 0.85, 0.86], metallic: 0, roughness: 0.6, doubleSided: true },
-  /** Later backhaul dishes, which render as polished metal. */
-  dish: { color: [0.7, 0.71, 0.73], metallic: 0.9, roughness: 0.25, doubleSided: true },
-} satisfies Record<string, Finish>;
+/** The dark panels on the bus top. */
+const DECK: Finish = { color: [0.04, 0.04, 0.05], metallic: 0.2, roughness: 0.6 };
 
-/** Gap between segments of an array, wide enough to read as seams. */
-const SEAM = 0.04;
-/** A flat array's thickness; real ones are thinner, but this keeps edges visible. */
-const ARRAY_THICKNESS = 0.03;
-
+/** A Starlink bus's size. */
 interface Bus {
   /** Across the track. */
   width: number;
@@ -54,104 +35,33 @@ interface Bus {
   height: number;
 }
 
-interface ArraySpec {
-  /** From root to tip. */
-  span: number;
-  /** Along the velocity. */
-  width: number;
-  /** Segments across the width, and along the span. */
-  columns: number;
-  rows: number;
-}
-
 /**
  * The bus: an aluminium body, two dark top panels either side of the spine, and
  * the mirror film under it.
  */
 function addBus(model: Model, bus: Bus): void {
-  const deck = model.material("deck", FINISHES.deck);
-  const aluminium = model.material("aluminium", FINISHES.aluminium);
+  const deck = model.material("deck", DECK);
+  const aluminium = material(model, "aluminium");
   model.box("bus", aluminium, [bus.width, bus.height, bus.length], { at: [0, 0, 0] });
   for (const side of [1, -1]) {
     const width = bus.width / 2 - 0.12;
     model.box(`deck-${side}`, deck, [width, 0.02, bus.length - 0.2], { at: [side * (width / 2 + 0.06), bus.height / 2 + 0.01, 0] });
   }
   model.box("spine", aluminium, [0.08, 0.05, bus.length], { at: [0, bus.height / 2 + 0.025, 0] });
-  model.box("mirror", model.material("mirror", FINISHES.mirror), [bus.width - 0.06, 0.01, bus.length - 0.06], { at: [0, -bus.height / 2 - 0.005, 0] });
+  model.box("mirror", material(model, "mirror"), [bus.width - 0.06, 0.01, bus.length - 0.06], { at: [0, -bus.height / 2 - 0.005, 0] });
 }
 
 /** Phased-array tiles on the Earth-facing side, at (x, z) centres. */
 function addPhasedArrays(model: Model, bus: Bus, size: [number, number], centres: Array<[number, number]>): void {
-  const material = model.material("phasedArray", FINISHES.phasedArray);
+  const tiles = material(model, "phasedArray");
   for (const [i, [x, z]] of centres.entries()) {
-    model.box(`phased-array-${i}`, material, [size[0], 0.03, size[1]], { at: [x, -bus.height / 2 - 0.025, z] });
+    model.box(`phased-array-${i}`, tiles, [size[0], 0.03, size[1]], { at: [x, -bus.height / 2 - 0.025, z] });
   }
-}
-
-/**
- * An array of segments from a root at (x, y) = `root` outwards on `side` (1 port,
- * -1 starboard), with an aluminium stiffener along its root. `lift` raises it out
- * of the bus plane, in degrees.
- */
-function addArray(model: Model, name: string, array: ArraySpec, root: [number, number], side: 1 | -1, lift = 0): void {
-  const cells = model.material("cells", FINISHES.cells);
-  const radians = (lift * Math.PI) / 180;
-  const rowLength = array.span / array.rows;
-  const columnWidth = array.width / array.columns;
-  const along = (x: number): [number, number] => [root[0] + side * x * Math.cos(radians), root[1] + x * Math.sin(radians)];
-  const rotate = lift === 0 ? undefined : { axis: "z" as const, degrees: side * lift };
-  for (let row = 0; row < array.rows; row++) {
-    for (let column = 0; column < array.columns; column++) {
-      const [x, y] = along((row + 0.5) * rowLength);
-      const z = (column + 0.5) * columnWidth - array.width / 2;
-      model.box(`${name}-${row}-${column}`, cells, [rowLength - SEAM, ARRAY_THICKNESS, columnWidth - SEAM], { at: [x, y, z], ...(rotate && { rotate }) });
-    }
-  }
-  const [x, y] = along(0);
-  model.box(`${name}-stiffener`, model.material("aluminium", FINISHES.aluminium), [0.08, 0.08, array.width], { at: [x, y, 0], ...(rotate && { rotate }) });
-}
-
-/**
- * The exposed part of the pantograph that deploys an array: two rods in a narrow V,
- * `spread` apart along the velocity at the bus and at the array, as SpaceX's renders
- * and Kandula et al.'s to-scale figure show.
- */
-function addBoom(model: Model, name: string, edge: number, side: 1 | -1, length: number, spread: [number, number]): void {
-  const black = model.material("black", FINISHES.black);
-  for (const sign of [1, -1]) {
-    const [atBus, atArray] = [(sign * spread[0]) / 2, (sign * spread[1]) / 2];
-    const rod = Math.hypot(length, atBus - atArray);
-    const degrees = (Math.atan2(atBus - atArray, length) * 180) / Math.PI;
-    model.box(`${name}-${sign}`, black, [rod, 0.05, 0.05], {
-      at: [edge + (side * length) / 2, 0, (atBus + atArray) / 2],
-      rotate: { axis: "y", degrees: side * degrees },
-    });
-  }
-}
-
-/**
- * A parabolic dish facing the Earth, on an arm from the bus at `mount` (x, z) to the
- * dish at `at` (x, z), level with the underside.
- */
-function addDish(model: Model, name: string, finish: "white" | "dish", radius: number, bus: Bus, mount: [number, number], at: [number, number]): void {
-  const y = -bus.height / 2 - 0.1;
-  const arm: Placement = {
-    at: [(mount[0] + at[0]) / 2, y + 0.05, (mount[1] + at[1]) / 2],
-    rotate: { axis: "y", degrees: (Math.atan2(-(at[1] - mount[1]), at[0] - mount[0]) * 180) / Math.PI },
-  };
-  const reach = Math.hypot(at[0] - mount[0], at[1] - mount[1]);
-  if (reach > 0) {
-    model.box(`${name}-arm`, model.material("black", FINISHES.black), [reach, 0.06, 0.06], arm);
-  }
-  model.dish(name, model.material(finish, FINISHES[finish]), radius, radius * 0.4, 4, 16, {
-    at: [at[0], y, at[1]],
-    rotate: { axis: "x", degrees: 180 },
-  });
 }
 
 /** Laser terminals: black boxes with a round aperture, at the bus ends, at (x, z). */
 function addLasers(model: Model, positions: Array<[number, number]>): void {
-  const black = model.material("black", FINISHES.black);
+  const black = material(model, "black");
   for (const [i, [x, z]] of positions.entries()) {
     const end = Math.sign(z);
     model.box(`laser-${i}`, black, [0.3, 0.25, 0.3], { at: [x, 0, z] });
@@ -159,12 +69,13 @@ function addLasers(model: Model, positions: Array<[number, number]>): void {
   }
 }
 
-/** The argon Hall thruster, mid-way along an end, firing along the long axis. */
-function addThruster(model: Model, bus: Bus, end: 1 | -1): void {
-  model.cylinder("thruster", model.material("black", FINISHES.black), 0.12, 0.3, 12, {
-    at: [0, 0, end * (bus.length / 2 + 0.15)],
-    rotate: { axis: "x", degrees: 90 },
-  });
+/**
+ * A backhaul or gateway dish facing the Earth, on an arm from the bus's lower edge at
+ * `mount` (x, z) out to the dish at `at` (x, z).
+ */
+function addEarthDish(model: Model, name: string, finish: "white" | "polished", radius: number, bus: Bus, mount: [number, number], at: [number, number]): void {
+  const underside = -bus.height / 2;
+  addDish(model, name, finish, radius, [at[0], underside - 0.05, at[1]], "-y", [mount[0], underside, mount[1]]);
 }
 
 /**
@@ -186,13 +97,14 @@ export function starlinkV1(): Document {
     [0.3, 0],
     [-0.3, 0],
   ]);
-  addDish(model, "gateway-fore", "white", 0.2, bus, [0, bus.length / 2], [0, bus.length / 2 + 0.25]);
-  addDish(model, "gateway-aft", "white", 0.2, bus, [0, -bus.length / 2], [0, -bus.length / 2 - 0.25]);
+  for (const end of [1, -1]) {
+    addEarthDish(model, `gateway-${end}`, "white", 0.2, bus, [0, end * (bus.length / 2)], [0, end * (bus.length / 2 + 0.25)]);
+  }
   const posts = 0.15;
   for (const z of [-0.5, 0.5]) {
-    model.box(`post-${z}`, model.material("aluminium", FINISHES.aluminium), [0.06, posts, 0.06], { at: [-bus.width / 2 + 0.05, bus.height / 2 + posts / 2, z] });
+    model.box(`post-${z}`, material(model, "aluminium"), [0.06, posts, 0.06], { at: [-bus.width / 2 + 0.05, bus.height / 2 + posts / 2, z] });
   }
-  addArray(model, "array", { span: 8.1, width: bus.length, columns: 2, rows: 12 }, [-bus.width / 2 + 0.05, bus.height / 2 + posts], -1, 90);
+  addArray(model, "array", { span: 8.1, width: bus.length, columns: 2, rows: 12 }, [-bus.width / 2 + 0.05, bus.height / 2 + posts, 0], -1, 90);
   return model.doc;
 }
 
@@ -218,7 +130,7 @@ export function starlinkV2Mini(): Document {
  */
 export function starlinkV2MiniDirectToCell(): Document {
   const model = v2Mini(new Model());
-  model.box("direct-to-cell", model.material("phasedArray", FINISHES.phasedArray), [2.7, 0.06, 2.3], { at: [0, -V2_BUS.height / 2 - 0.07, 0] });
+  model.box("direct-to-cell", material(model, "phasedArray"), [2.7, 0.06, 2.3], { at: [0, -V2_BUS.height / 2 - 0.07, 0] });
   return model.doc;
 }
 
@@ -237,16 +149,16 @@ function v2Mini(model: Model): Model {
     [0.65, 1.35],
   ]);
   // On arms outside the outline: two at the corners of one end, one at the other.
-  addDish(model, "backhaul-0", "dish", 0.35, bus, [hx, hz - 0.3], [hx + 0.45, hz]);
-  addDish(model, "backhaul-1", "dish", 0.35, bus, [-hx, hz - 0.3], [-hx - 0.45, hz]);
-  addDish(model, "backhaul-2", "dish", 0.35, bus, [hx, -hz + 0.3], [hx + 0.45, -hz]);
+  addEarthDish(model, "backhaul-0", "polished", 0.35, bus, [hx, hz - 0.3], [hx + 0.45, hz]);
+  addEarthDish(model, "backhaul-1", "polished", 0.35, bus, [-hx, hz - 0.3], [-hx - 0.45, hz]);
+  addEarthDish(model, "backhaul-2", "polished", 0.35, bus, [hx, -hz + 0.3], [hx + 0.45, -hz]);
   addLasers(model, [
     [-0.6, hz + 0.15],
     [0.6, -hz - 0.15],
     [-0.6, -hz - 0.15],
   ]);
-  addThruster(model, bus, 1);
-  addWings(model, bus, { span: 12.8, width: 4.1, columns: 2, rows: 16 }, 2.8, [0.15, 0.7]);
+  addThruster(model, hz, 1, 0.12);
+  addWings(model, { array: { span: 12.8, width: 4.1, columns: 2, rows: 16 }, edge: hx, yoke: 2.8, spread: [0.15, 0.7] });
   return model;
 }
 
@@ -259,7 +171,7 @@ function v2Mini(model: Model): Model {
  * of width, an envelope SpaceX calls conservative; its 6.4 × 2.7 m bus matches the
  * renders. The gap between array roots is about 0.4 of an array's length: 2.5 m of
  * boom each side, a 47 m span. GCAT's 160 m reads the four segments end to end. Three
- * lasers sit at each end of the spine and four backhaul dishes on curved arms at the
+ * lasers sit at each end of the spine and four backhaul dishes on arms at the
  * corners.
  */
 export function starlinkV3(): Document {
@@ -276,15 +188,14 @@ export function starlinkV3(): Document {
     [0.65, 2.1],
     [-0.65, 2.1],
   ]);
-  for (const [i, [sx, sz]] of (
-    [
-      [1, 1],
-      [-1, 1],
-      [1, -1],
-      [-1, -1],
-    ] as Array<[number, number]>
-  ).entries()) {
-    addDish(model, `backhaul-${i}`, "dish", 0.55, bus, [sx * hx, sz * (hz - 0.8)], [sx * (hx + 0.7), sz * (hz - 0.3)]);
+  const corners: Array<[number, number]> = [
+    [1, 1],
+    [-1, 1],
+    [1, -1],
+    [-1, -1],
+  ];
+  for (const [i, [sx, sz]] of corners.entries()) {
+    addEarthDish(model, `backhaul-${i}`, "polished", 0.55, bus, [sx * hx, sz * (hz - 0.8)], [sx * (hx + 0.7), sz * (hz - 0.3)]);
   }
   addLasers(model, [
     [-0.7, hz + 0.15],
@@ -294,16 +205,6 @@ export function starlinkV3(): Document {
     [0, -hz - 0.15],
     [0.7, -hz - 0.15],
   ]);
-  addWings(model, bus, { span: 19.5, width: 3.7, columns: 4, rows: 32 }, 2.5, [0.2, 0.6]);
+  addWings(model, { array: { span: 19.5, width: 3.7, columns: 4, rows: 32 }, edge: hx, yoke: 2.5, spread: [0.2, 0.6] });
   return model.doc;
-}
-
-/** Both arrays, each on its boom, `gap` metres out from the bus's long sides. */
-function addWings(model: Model, bus: Bus, array: ArraySpec, gap: number, spread: [number, number]): void {
-  for (const side of [1, -1] as const) {
-    const edge = side * (bus.width / 2);
-    const name = side > 0 ? "port" : "starboard";
-    addBoom(model, `boom-${name}`, edge, side, gap, spread);
-    addArray(model, `array-${name}`, array, [edge + side * gap, 0], side);
-  }
 }
