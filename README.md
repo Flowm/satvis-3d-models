@@ -36,10 +36,11 @@ pnpm check          # type-check build.ts
 where they are checked.
 
 The build fetches each source into `.cache/`, removes the listed nodes, drops
-the PNG/JPEG fallbacks of WebP textures, wraps the scene in one node carrying
-the rotation and scale, writes it Draco-compressed, and measures every model
-into `models.yaml`. A model without a source path is kept as it is and only
-measured.
+the PNG/JPEG fallbacks of WebP textures, bakes every node transform, the
+rotation and scale included, into the vertices, writes it Draco-compressed, and
+measures every model into `models.yaml`. The baking is for Cesium, which sizes a
+rotated model's bounding sphere wrongly. A model without a source path is kept
+as it is and only measured.
 
 To inspect the result, open `/models.html` in a satvis dev server.
 

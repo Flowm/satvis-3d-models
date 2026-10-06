@@ -11,7 +11,7 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 445536
+      bytes: 443656
       dimensions: [ 71.333, 108.509, 14.577 ]
       triangles: 169571
       textures: []
@@ -23,7 +23,7 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 335248
+      bytes: 331448
       dimensions: [ 4.97, 12.259, 10.037 ]
       triangles: 84087
       textures: []
@@ -34,7 +34,7 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 140300
+      bytes: 140340
       dimensions: [ 5.077, 2.212, 2.945 ]
       triangles: 11204
       textures: [ 1024x1024 image/webp, 512x512 image/webp, 1024x1024 image/webp ]
@@ -45,7 +45,7 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 178384
+      bytes: 177520
       dimensions: [ 7.342, 2.315, 3.633 ]
       triangles: 23662
       textures: [ 512x512 image/webp, 1024x1024 image/webp ]
@@ -57,7 +57,7 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 140620
+      bytes: 138792
       dimensions: [ 3.179, 1.943, 1.292 ]
       triangles: 3921
       textures: [ 1024x1024 image/webp, 720x480 image/webp ]
@@ -90,7 +90,7 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 91732
+      bytes: 91804
       dimensions: [ 0.1, 0.236, 0.118 ]
       triangles: 23570
       textures: []
@@ -100,7 +100,7 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 125648
+      bytes: 125712
       dimensions: [ 0.101, 0.245, 0.228 ]
       triangles: 36896
       textures: []
@@ -110,7 +110,7 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 511016
+      bytes: 511044
       dimensions: [ 9.283, 30.992, 7.077 ]
       triangles: 181048
       textures: []

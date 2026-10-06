@@ -5,9 +5,9 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { type Document, NodeIO, Primitive, type Scene, type vec3, type vec4 } from "@gltf-transform/core";
+import { type Document, Node, NodeIO, Primitive, type Scene, type vec3, type vec4 } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
-import { dedup, draco, getBounds, prune } from "@gltf-transform/functions";
+import { dedup, draco, flatten, getBounds, prune, transformMesh } from "@gltf-transform/functions";
 import draco3d from "draco3dgltf";
 import YAML, { isMap, isScalar, isSeq } from "yaml";
 
@@ -158,7 +158,6 @@ async function build(model: RecipeModel, source: Source, sourcePath: string, out
     throw new Error(`${model.file}: the source uses EXT_texture_webp, so set stripFallbackTextures`);
   }
 
-  // On a parent node, not baked into vertices, so the transform stays readable.
   const scene = sceneOf(doc, model.file);
   const scale = model.scale ?? 1;
   const frame = doc
@@ -170,9 +169,56 @@ async function build(model: RecipeModel, source: Source, sourcePath: string, out
   }
   scene.addChild(frame);
 
+  // Baked into the vertices: Cesium bounds a rotated node by only its transformed
+  // min and max corners, which once an axis flips shrank Suomi NPP's sphere to a quarter.
+  disposeRestPoseAnimations(doc, model.file);
+  await doc.transform(flatten());
+  for (const node of scene.listChildren()) {
+    const mesh = node.getMesh();
+    if (!mesh) {
+      continue;
+    }
+    if (mesh.listParents().filter((parent) => parent instanceof Node).length > 1) {
+      throw new Error(`${model.file}: mesh ${mesh.getName()} is shared by several nodes`);
+    }
+    transformMesh(mesh, node.getWorldMatrix());
+    node.setMatrix([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+  }
+
   await doc.transform(prune(), dedup(), draco());
   await mkdir(path.dirname(output), { recursive: true });
   await writeFile(output, await io.writeBinary(doc));
+}
+
+/**
+ * Removes animations that only hold nodes at their rest pose, which Blender exports
+ * for the ISS. Real motion fails the build: flatten() leaves an animated node in
+ * place, and baking would move its vertices away from what the animation drives.
+ */
+function disposeRestPoseAnimations(doc: Document, file: string): void {
+  for (const animation of doc.getRoot().listAnimations()) {
+    const atRest = animation.listChannels().every((channel) => {
+      const node = channel.getTargetNode();
+      // Its node was in removeNodes.
+      if (!node) {
+        return true;
+      }
+      const sampler = channel.getSampler();
+      const input = sampler?.getInput();
+      const output = sampler?.getOutput();
+      if (!input || !output || input.getCount() !== 1) {
+        return false;
+      }
+      const path = channel.getTargetPath();
+      const rest: number[] = path === "translation" ? node.getTranslation() : path === "rotation" ? node.getRotation() : path === "scale" ? node.getScale() : [];
+      const key = output.getElement(0, []);
+      return rest.length === key.length && key.every((value, i) => Math.abs(value - (rest[i] ?? NaN)) < 1e-6);
+    });
+    if (!atRest) {
+      throw new Error(`${file}: animation ${animation.getName()} moves its nodes, so their transforms cannot be baked`);
+    }
+    animation.dispose();
+  }
 }
 
 async function fetchSource(source: Source, sourcePath: string): Promise<Uint8Array> {
