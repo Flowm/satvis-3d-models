@@ -56,7 +56,12 @@ To inspect the result, open `/models.html` in a satvis dev server.
 
 ## Licences
 
-Models from NASA 3D Resources are not subject to US copyright; credit NASA.
-NASA insignia and logos are not free to use, and use must not imply NASA
-endorsement. The MOVE models come from the TUM MOVE CubeSat team. Generated
-models are MIT, as satvis is.
+`LICENSE` (MIT) covers the build scripts, the generators and the models they
+generate. Models taken from elsewhere keep their own terms, which `models.yaml`
+lists for each model. Models from NASA 3D Resources are not subject to US
+copyright; credit NASA. NASA insignia and logos are not free to use, and use must
+not imply NASA endorsement.
+
+The GCAT bus names in `build.yaml` and `models.yaml` come from Jonathan
+McDowell's General Catalog of Artificial Space Objects, CC BY 4.0: data from
+J. McDowell, planet4589.org.
