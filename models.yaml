@@ -625,23 +625,119 @@ models:
       textures: []
       extensions: [ KHR_draco_mesh_compression ]
   - file: generic/CUBESAT-1U.glb
+    buses:
+      - Cubesat 1U
+      - Cubesat 1U?
     role: Generic 1U CubeSat
-    credit: NASA
-    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    credit: satvis
+    license: MIT (LICENSE). Built from published dimensions, cited in each generator.
     measured:
-      bytes: 91804
-      dimensions: [ 0.1, 0.236, 0.118 ]
-      triangles: 23570
+      bytes: 2260
+      dimensions: [ 0.113, 0.1, 0.1 ]
+      triangles: 108
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: generic/CUBESAT-1.5U.glb
+    buses:
+      - Cubesat 1.5U
+    role: Generic 1.5U CubeSat
+    credit: satvis
+    license: MIT (LICENSE). Built from published dimensions, cited in each generator.
+    measured:
+      bytes: 2280
+      dimensions: [ 0.17, 0.1, 0.1 ]
+      triangles: 108
       textures: []
       extensions: [ KHR_draco_mesh_compression ]
   - file: generic/CUBESAT-2U.glb
+    buses:
+      - Cubesat 2U
     role: Generic 2U CubeSat
-    credit: NASA
-    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    credit: satvis
+    license: MIT (LICENSE). Built from published dimensions, cited in each generator.
     measured:
-      bytes: 125712
-      dimensions: [ 0.101, 0.245, 0.228 ]
-      triangles: 36896
+      bytes: 2280
+      dimensions: [ 0.227, 0.1, 0.1 ]
+      triangles: 108
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: generic/CUBESAT-3U.glb
+    buses:
+      - Cubesat 3U
+      - Cubesat 3U?
+    role: Generic 3U CubeSat
+    credit: satvis
+    license: MIT (LICENSE). Built from published dimensions, cited in each generator.
+    measured:
+      bytes: 2360
+      dimensions: [ 0.34, 0.296, 0.101 ]
+      triangles: 132
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: generic/CUBESAT-4U.glb
+    buses:
+      - Cubesat 4U
+    role: Generic 4U CubeSat
+    credit: satvis
+    license: MIT (LICENSE). Built from published dimensions, cited in each generator.
+    measured:
+      bytes: 2264
+      dimensions: [ 0.454, 0.1, 0.1 ]
+      triangles: 108
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: generic/CUBESAT-6U.glb
+    buses:
+      - Cubesat 6U
+      - Cubesat 6U?
+      - Cubesat 6UXL
+    role: Generic 6U CubeSat
+    credit: satvis
+    license: MIT (LICENSE). Built from published dimensions, cited in each generator.
+    measured:
+      bytes: 2360
+      dimensions: [ 0.34, 0.675, 0.102 ]
+      triangles: 132
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: generic/CUBESAT-8U.glb
+    buses:
+      - Cubesat 8U
+    role: Generic 8U CubeSat
+    credit: satvis
+    license: MIT (LICENSE). Built from published dimensions, cited in each generator.
+    measured:
+      bytes: 2268
+      dimensions: [ 0.454, 0.226, 0.1 ]
+      triangles: 108
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: generic/CUBESAT-12U.glb
+    buses:
+      - Cubesat 12U
+      - Cubesat 12U?
+      - Cubesat 12UXL
+    role: Generic 12U CubeSat
+    credit: satvis
+    license: MIT (LICENSE). Built from published dimensions, cited in each generator.
+    measured:
+      bytes: 2480
+      dimensions: [ 0.34, 1.58, 0.228 ]
+      triangles: 180
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: generic/CUBESAT-16U.glb
+    buses:
+      - Cubesat 16U
+      - Cubesat 16U EPIC
+      - Cubesat 16U M16P
+    role: Generic 16U CubeSat
+    credit: satvis
+    license: MIT (LICENSE). Built from published dimensions, cited in each generator.
+    measured:
+      bytes: 2492
+      dimensions: [ 0.454, 1.58, 0.228 ]
+      triangles: 180
       textures: []
       extensions: [ KHR_draco_mesh_compression ]
   - file: generic/SSL-1300.glb

@@ -6,8 +6,8 @@ manifest that tells it which satellite uses which model.
 ## Files
 
 - `public/` — the models. satvis serves this folder at `/data/models/` and ships
-  nothing else from the repository; `public/generic/` holds fallback models no
-  satellite maps to yet.
+  nothing else from the repository; `public/generic/` holds generic models, drawn for a
+  platform rather than one design.
 - `build.yaml` — the recipe, edited by hand: where each model comes from, what
   the build does to it, and the satellites it depicts, by NORAD id or by bus.
 - `generators/` — models built from code rather than fetched, from published
@@ -38,7 +38,8 @@ pnpm check-buses    # list everything in GCAT on each bus build.yaml names
 ```
 
 Name a bus in `build.yaml` only when everything GCAT puts on it is the design the
-model shows. `pnpm check-buses` lists each named bus's objects by name, mass and
+model shows, or for a generic model in `generic/`, which shows a platform such as
+`Cubesat 3U` in outline. `pnpm check-buses` lists each named bus's objects by name, mass and
 launch years, decayed ones included; GCAT is cached in `.cache/gcat/`.
 
 `build.ts` runs on Node 24 directly, which strips the types; `pnpm check` is

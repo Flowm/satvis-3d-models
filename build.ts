@@ -11,6 +11,7 @@ import { dedup, draco, flatten, getBounds, join, prune, transformMesh } from "@g
 import draco3d from "draco3dgltf";
 import YAML, { isMap, isScalar, isSeq } from "yaml";
 
+import { CUBESATS } from "./generators/cubesat.ts";
 import { beidou3Cast, beidou3Secm, galileoFoc, glonassM, gpsIIF, gpsIII, gpsIIR } from "./generators/gnss.ts";
 import { globalstar2 } from "./generators/globalstar.ts";
 import { guowang } from "./generators/guowang.ts";
@@ -104,6 +105,7 @@ const GENERATORS: Record<string, () => Document> = {
   pelican,
   "kepler-tranche-1": keplerTranche1,
   "kepler-tranche-1-safire": keplerTranche1Safire,
+  ...CUBESATS,
 };
 
 // Cesium flies glTF +Z along the velocity, +X to port and +Y to the zenith.

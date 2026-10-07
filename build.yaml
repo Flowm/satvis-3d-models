@@ -9,8 +9,9 @@
 # It lists every satellite it depicts, by NORAD id, or names the GCAT buses whose
 # satellites it depicts, or both; satvis maps those to the file. A NORAD id, and a
 # bus, may appear under one model only. A bus is only named when nothing else in
-# GCAT uses it, decayed objects included (`pnpm check-buses`). Files keep the name of
-# their first satellite, or of the design they show.
+# GCAT uses it, decayed objects included (`pnpm check-buses`), except by a generic
+# model under generic/, which names a platform bus and shows only its outline. Files
+# keep the name of their first satellite, or of the design they show.
 #
 # A source is fetched from `path`, or built by `generator` (generators/), named
 # after its file in lower case.
@@ -510,17 +511,53 @@ models:
     role: Kepler Tranche 1 hosting OroraTech's SAFIRE Gen4 thermal camera
     source: { id: satvis, generator: kepler-tranche-1-safire }
 
-  # Generic fallbacks: no satellite maps to them yet. 0.0455 gives the CubeSats
-  # their 10 cm face (1U 11.8 cm tall, 2U 22.7 cm).
+  # Generic CubeSats, one per size, for every satellite GCAT puts on a "Cubesat NU"
+  # bus that no NORAD list above claims (SuperDove's does). The "?" buses are GCAT's
+  # guesses at the size; the XL and named 16U platforms keep the size's outline.
   - file: generic/CUBESAT-1U.glb
     role: Generic 1U CubeSat
-    source: { id: nasa, path: "3D Models/CubeSat - 1 RU Generic/CubeSat - 1 RU Generic.glb" }
-    scale: 0.0455
+    buses: [Cubesat 1U, Cubesat 1U?]
+    source: { id: satvis, generator: cubesat-1u }
+
+  - file: generic/CUBESAT-1.5U.glb
+    role: Generic 1.5U CubeSat
+    buses: [Cubesat 1.5U]
+    source: { id: satvis, generator: cubesat-1.5u }
 
   - file: generic/CUBESAT-2U.glb
     role: Generic 2U CubeSat
-    source: { id: nasa, path: "3D Models/CubeSat - 2 RU Generic/CubeSat - 2 RU Generic.glb" }
-    scale: 0.0455
+    buses: [Cubesat 2U]
+    source: { id: satvis, generator: cubesat-2u }
+
+  - file: generic/CUBESAT-3U.glb
+    role: Generic 3U CubeSat
+    buses: [Cubesat 3U, Cubesat 3U?]
+    source: { id: satvis, generator: cubesat-3u }
+
+  - file: generic/CUBESAT-4U.glb
+    role: Generic 4U CubeSat
+    buses: [Cubesat 4U]
+    source: { id: satvis, generator: cubesat-4u }
+
+  - file: generic/CUBESAT-6U.glb
+    role: Generic 6U CubeSat
+    buses: [Cubesat 6U, Cubesat 6U?, Cubesat 6UXL]
+    source: { id: satvis, generator: cubesat-6u }
+
+  - file: generic/CUBESAT-8U.glb
+    role: Generic 8U CubeSat
+    buses: [Cubesat 8U]
+    source: { id: satvis, generator: cubesat-8u }
+
+  - file: generic/CUBESAT-12U.glb
+    role: Generic 12U CubeSat
+    buses: [Cubesat 12U, Cubesat 12U?, Cubesat 12UXL]
+    source: { id: satvis, generator: cubesat-12u }
+
+  - file: generic/CUBESAT-16U.glb
+    role: Generic 16U CubeSat
+    buses: [Cubesat 16U, Cubesat 16U EPIC, Cubesat 16U M16P]
+    source: { id: satvis, generator: cubesat-16u }
 
   # 0.1155 scales the 268-unit span to the 31 m of a standard SSL-1300. Flipped
   # so the feed tower and antenna deck face Earth; the arrays already run
