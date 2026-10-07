@@ -12,6 +12,7 @@ import draco3d from "draco3dgltf";
 import YAML, { isMap, isScalar, isSeq } from "yaml";
 
 import { CUBESATS } from "./generators/cubesat.ts";
+import { bss702hp, dfh4, eurostar3000 } from "./generators/geostationary.ts";
 import { beidou3Cast, beidou3Secm, galileoFoc, glonassM, gpsIIF, gpsIII, gpsIIR } from "./generators/gnss.ts";
 import { globalstar2 } from "./generators/globalstar.ts";
 import { guowang } from "./generators/guowang.ts";
@@ -106,6 +107,9 @@ const GENERATORS: Record<string, () => Document> = {
   "kepler-tranche-1": keplerTranche1,
   "kepler-tranche-1-safire": keplerTranche1Safire,
   ...CUBESATS,
+  "eurostar-3000": eurostar3000,
+  "bss-702hp": bss702hp,
+  "dfh-4": dfh4,
 };
 
 // Cesium flies glTF +Z along the velocity, +X to port and +Y to the zenith.

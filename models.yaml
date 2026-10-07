@@ -741,6 +741,21 @@ models:
       textures: []
       extensions: [ KHR_draco_mesh_compression ]
   - file: generic/SSL-1300.glb
+    buses:
+      - FS-1300HL
+      - SSL-1300
+      - SSL-1300-O
+      - SSL-1300E
+      - SSL-1300HL
+      - SSL-1300LL
+      - SSL-1300S
+      - SSL-1300SX
+      - SSL-1300X
+      - LS-1300
+      - LS-1300-140
+      - LS-1300-O
+      - LS-1300LL
+      - LS-1300S
     role: Generic geostationary communications satellite (SSL-1300 bus)
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
@@ -750,3 +765,49 @@ models:
       triangles: 181048
       textures: []
       extensions: [ KHR_draco_mesh_compression, KHR_materials_specular ]
+  - file: generic/EUROSTAR-3000.glb
+    buses:
+      - Eurostar 3000
+      - Eurostar 3000e
+      - Eurostar 3000EOR
+      - Eurostar 3000GM
+      - Eurostar 3000LS
+      - Eurostar 3000LX
+      - Eurostar 3000LXH
+      - Eurostar 3000M
+      - Eurostar 3000S
+      - Eurostar 3000X
+    role: Generic geostationary communications satellite (Eurostar 3000 bus)
+    credit: satvis
+    license: MIT (LICENSE). Built from published dimensions, cited in each generator.
+    measured:
+      bytes: 8180
+      dimensions: [ 6.437, 38.96, 6.927 ]
+      triangles: 860
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: generic/BSS-702HP.glb
+    buses:
+      - BSS-702HP
+    role: Generic geostationary communications satellite (BSS-702HP bus)
+    credit: satvis
+    license: MIT (LICENSE). Built from published dimensions, cited in each generator.
+    measured:
+      bytes: 8124
+      dimensions: [ 7.186, 40.86, 7.45 ]
+      triangles: 884
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: generic/DFH-4.glb
+    buses:
+      - DFH-4
+      - DFH-4?
+    role: Generic geostationary communications satellite (DFH-4 bus)
+    credit: satvis
+    license: MIT (LICENSE). Built from published dimensions, cited in each generator.
+    measured:
+      bytes: 8176
+      dimensions: [ 5.649, 29.96, 5.005 ]
+      triangles: 836
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]

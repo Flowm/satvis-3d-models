@@ -559,12 +559,34 @@ models:
     buses: [Cubesat 16U, Cubesat 16U EPIC, Cubesat 16U M16P]
     source: { id: satvis, generator: cubesat-16u }
 
+  # Generic geostationary comsats, each for a bus family and every variant GCAT
+  # gives it, its guesses included; DFH-4E and Eurostar Neo are larger designs left
+  # out. FS-1300, SSL-1300 and LS-1300 are one bus under Loral's, SSL's and Maxar's
+  # names, but GCAT's FS-1300 holds GOES 8 to 12 and FS-1300O TerreStar 1 with its
+  # 18 m reflector, so those two are left out.
+  #
   # 0.1155 scales the 268-unit span to the 31 m of a standard SSL-1300. Flipped
   # so the feed tower and antenna deck face Earth; the arrays already run
   # north-south, across the velocity.
   - file: generic/SSL-1300.glb
     role: Generic geostationary communications satellite (SSL-1300 bus)
+    buses: [FS-1300HL, SSL-1300, SSL-1300-O, SSL-1300E, SSL-1300HL, SSL-1300LL, SSL-1300S, SSL-1300SX, SSL-1300X, LS-1300, LS-1300-140, LS-1300-O, LS-1300LL, LS-1300S]
     source: { id: nasa, path: "3D Models/Space Systems Loral (SSL-1300)/Space Systems Loral (SSL-1300).glb" }
     rotate:
       - { axis: velocity, degrees: 180 }
     scale: 0.1155
+
+  - file: generic/EUROSTAR-3000.glb
+    role: Generic geostationary communications satellite (Eurostar 3000 bus)
+    buses: [Eurostar 3000, Eurostar 3000e, Eurostar 3000EOR, Eurostar 3000GM, Eurostar 3000LS, Eurostar 3000LX, Eurostar 3000LXH, Eurostar 3000M, Eurostar 3000S, Eurostar 3000X]
+    source: { id: satvis, generator: eurostar-3000 }
+
+  - file: generic/BSS-702HP.glb
+    role: Generic geostationary communications satellite (BSS-702HP bus)
+    buses: [BSS-702HP]
+    source: { id: satvis, generator: bss-702hp }
+
+  - file: generic/DFH-4.glb
+    role: Generic geostationary communications satellite (DFH-4 bus)
+    buses: [DFH-4, DFH-4?]
+    source: { id: satvis, generator: dfh-4 }
