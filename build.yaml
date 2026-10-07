@@ -172,6 +172,179 @@ models:
       - { axis: velocity, degrees: 180 }
     scale: 0.2234
 
+  # The source's two textures are .tga files outside the GLB that the NASA repo
+  # does not have, so the build must drop them; the panels keep their base colours.
+  # 0.0005 scales the 13,622-unit bus to its 6.8 m (eoPortal), which makes the wing
+  # 8.4 m x 5.0 m against 9 m x 5 m. The instrument boxes face nadir and the HGA
+  # mast the zenith; the wing deploys on the sunlit side (eoPortal), port in the
+  # 10:30 descending orbit, which brings the HGA end to the front.
+  - file: TERRA.glb
+    satellites:
+      - { name: TERRA, noradId: 25994 }
+    source: { id: nasa, path: "3D Models/Terra/Terra.glb" }
+    rotate:
+      - { axis: zenith, degrees: 90 }
+    scale: 0.0005
+    dropExternalTextures: true
+
+  # 0.911 brings the 18.7 m span to the published 17.03 m (eoPortal), leaving the
+  # bus 7.4 m long against 6.85 m. MLS sits on the front and the other three
+  # instruments on the nadir side (NASA); radiators take the anti-sun side, so the
+  # wing is on the sunlit side: port, in the 13:45 ascending orbit. The three
+  # agree: the instrument face goes to nadir, the wing to port, and that puts the
+  # MLS antenna end in front.
+  - file: AURA.glb
+    satellites:
+      - { name: AURA, noradId: 28376 }
+    source: { id: nasa, path: "3D Models/Aura (B)/Aura (B).glb" }
+    rotate:
+      - { axis: zenith, degrees: -90 }
+      - { axis: velocity, degrees: 90 }
+    scale: 0.911
+    stripFallbackTextures: true
+
+  # Already in metres: 13.78 m long and 19.51 m across the arrays, against 13.8 m
+  # and 19.5 m (NASA). The attitude is inertial; the aperture leads and the
+  # arrays run port to starboard.
+  - file: CXO.glb
+    satellites:
+      - { name: CXO, noradId: 25867 }
+    source: { id: nasa, path: "3D Models/Chandra X-ray Observatory/Chandra X-ray Observatory.glb" }
+    rotate:
+      - { axis: zenith, degrees: 90 }
+    stripFallbackTextures: true
+
+  # 0.24 scales the 62.3-unit array span to the 15 m deployed width (NASA SVS),
+  # which leaves the LAT 1.6 m across against 1.8 m. Already oriented: the LAT
+  # faces the zenith, as in the sky survey, which rocks it 50 degrees north and
+  # south of zenith and yaws to keep the sun on the arrays.
+  - file: FGRST-(GLAST).glb
+    satellites:
+      - { name: FGRST (GLAST), noradId: 33053 }
+    source: { id: nasa, path: "3D Models/Fermi Gamma-ray Large Area Space Telescope/Fermi Gamma-ray Large Area Space Telescope.glb" }
+    scale: 0.24
+
+  # Of the two TESS models, the one with the cameras in a row. 0.527 scales the
+  # 7.39-unit span to 3.9 m (eoPortal), which makes the HGA 0.63 m against 0.7 m.
+  # The attitude is inertial, the cameras on a sky sector; they face the zenith.
+  - file: TESS.glb
+    satellites:
+      - { name: TESS, noradId: 43435 }
+    source: { id: nasa, path: "3D Models/Transiting Exoplanet Survey Satellite (TESS) (B)/Transiting Exoplanet Survey Satellite (TESS) (B).glb" }
+    scale: 0.527
+    stripFallbackTextures: true
+
+  # 0.1355 scales the 39.9-unit span to the 17.75 ft (5.41 m) width (NASA), which
+  # makes the bus 1.8 m across against the 1.7 m diameter; the published 18.5 ft
+  # height comes out 4.0 m. The attitude is inertial; BAT, XRT and UVOT face the
+  # zenith.
+  - file: SWIFT.glb
+    satellites:
+      - { name: SWIFT, noradId: 28485 }
+    source: { id: nasa, path: "3D Models/Swift/Swift.glb" }
+    scale: 0.1355
+
+  # 0.026 scales the KuPR to its 2.5 m x 2.4 m (NEC, JAXA) and the GMI reflector to
+  # 1.2 m; the observatory is 11.2 m x 7.0 m x 4.9 m against 13 m x 6.5 m x 5 m
+  # (eoPortal). The DPR already faces nadir and the GMI the zenith. The GMI scans
+  # a sector about the ground track past its end of the bus, so that end leads;
+  # GPM yaws 180 degrees every 40 days, so half the time it trails.
+  - file: GPM-CORE.glb
+    satellites:
+      - { name: GPM-CORE, noradId: 39574 }
+    source: { id: nasa, path: "3D Models/Global Precipitation Measurement/Global Precipitation Measurement.glb" }
+    rotate:
+      - { axis: zenith, degrees: -90 }
+    scale: 0.026
+
+  # 0.163 scales the 13.04-unit column to its 2.12 m (eoPortal), leaving each wing
+  # 2.2 m against about 3 m. The arrays rotate about the pitch axis (eoPortal,
+  # OCO), so they run port to starboard. The instrument sits on the top deck; the
+  # telescope looking out of that end, at nadir, is inferred.
+  - file: OCO-2.glb
+    satellites:
+      - { name: OCO 2, noradId: 40059 }
+    source: { id: nasa, path: "3D Models/Orbiting Carbon Observatory (OCO) 2/Orbiting Carbon Observatory (OCO) 2.glb" }
+    rotate:
+      - { axis: velocity, degrees: 180 }
+      - { axis: zenith, degrees: 90 }
+    scale: 0.163
+
+  # 0.169 scales the 37-unit array span to 6.25 m (NASA), which makes it 4.75 m
+  # along the sun axis against 4.5 m. The attitude is inertial, the instruments
+  # on the sun; they face the zenith.
+  - file: SDO.glb
+    satellites:
+      - { name: SDO, noradId: 36395 }
+    source: { id: nasa, path: "3D Models/Solar Dynamics Observatory/Solar Dynamics Observatory.glb" }
+    scale: 0.169
+
+  # Sentinel-6B is a copy. Already in metres: 5.13 m x 4.37 m x 2.32 m against
+  # 5.13 m x 4.17 m x 2.34 m (ESA). The Poseidon-4 dish and the retroreflector
+  # already face nadir. The long axis runs along the track, the GNSS-RO antennas
+  # looking fore and aft; which end leads is not documented, and the satellite
+  # yaw-flips.
+  - file: SENTINEL-6A.glb
+    satellites:
+      - { name: SENTINEL-6A, noradId: 46984 }
+      - { name: SENTINEL-6B, noradId: 66514 }
+    source: { id: nasa, path: "3D Models/Jason Continuity of Service (Sentinel-6)/Jason Continuity of Service (Sentinel-6).glb" }
+    rotate:
+      - { axis: zenith, degrees: -90 }
+    stripFallbackTextures: true
+
+  # A Jason-2 model: Jason-3 shares its Proteus bus and payload. 3.75 scales the
+  # 0.255-unit platform to its 954 mm (Proteus spec), which makes the satellite 3.7 m x
+  # 2.0 m, as published, and the span 8.4 m against 10 m. The Poseidon dish, with
+  # its feed tripod, and the DORIS antenna face up in the source; they look at
+  # nadir. The arrays rotate across the track. The payload end leads; Jason-3
+  # yaw-flips.
+  - file: JASON-3.glb
+    satellites:
+      - { name: JASON-3, noradId: 41240 }
+    source: { id: nasa, path: "3D Models/Ocean Surface Topography Mission (OSTM Jason-2)/Ocean Surface Topography Mission (OSTM Jason-2).glb" }
+    rotate:
+      - { axis: velocity, degrees: 180 }
+      - { axis: zenith, degrees: 90 }
+    scale: 3.75
+    stripFallbackTextures: true
+
+  # Of the two MMS models, the one with materials. 1.99 scales the 1.76-unit deck
+  # to 3.5 m (NASA); the 60 m wire booms stop at 14 m. The spacecraft spin, axis
+  # near the ecliptic normal; the spin axis faces the zenith.
+  - file: MMS-1.glb
+    satellites:
+      - { name: MMS 1, noradId: 40482 }
+      - { name: MMS 2, noradId: 40483 }
+      - { name: MMS 3, noradId: 40484 }
+      - { name: MMS 4, noradId: 40485 }
+    source: { id: nasa, path: "3D Models/Magnetospheric Multiscale (MMS) (B)/Magnetospheric Multiscale (MMS) (B).glb" }
+    scale: 1.99
+
+  # THEMIS B and C became ARTEMIS, at the Moon. Already in metres: the bus is
+  # 0.85 m x 0.84 m x 0.49 m against 84 cm x 84 cm x 51 cm (eoPortal). The probes
+  # spin; the spin axis faces the zenith.
+  - file: THEMIS-A.glb
+    satellites:
+      - { name: THEMIS A, noradId: 30580 }
+      - { name: THEMIS D, noradId: 30797 }
+      - { name: THEMIS E, noradId: 30798 }
+    source: { id: nasa, path: "3D Models/Time History of Events and Macroscale Interactions During Substorms (THEMIS)/Time History of Events and Macroscale Interactions During Substorms (THEMIS).glb" }
+    stripFallbackTextures: true
+
+  # 0.0436 scales the 229.6-unit span to 10 m (JAXA); the telescope then stands
+  # 2.3 m against 4 m, as the source's arrays are too long. Hinode points SOT and
+  # the arrays at the sun, which the 18:45 dawn-dusk orbit keeps near the orbit
+  # normal: port. The array runs along the track.
+  - file: HINODE-(SOLAR-B).glb
+    satellites:
+      - { name: HINODE (SOLAR-B), noradId: 29479 }
+    source: { id: nasa, path: "3D Models/Hinode (Solar-B)/Hinode (Solar-B).glb" }
+    rotate:
+      - { axis: velocity, degrees: -90 }
+      - { axis: port, degrees: -90 }
+    scale: 0.0436
+
   # Starlink, by bus, from published dimensions (generators/starlink.ts). v1.0 and
   # v1.5 share GCAT's bus "Starlink"; V2 mini Optimized looks like V2 mini.
   - file: STARLINK-V1.glb

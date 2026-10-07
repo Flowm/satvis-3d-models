@@ -5,7 +5,7 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { type Document, Node, NodeIO, Primitive, type Scene, type vec3, type vec4 } from "@gltf-transform/core";
+import { type Document, type Material, Node, NodeIO, Primitive, type Scene, Texture, type vec3, type vec4 } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import { dedup, draco, flatten, getBounds, join, prune, transformMesh } from "@gltf-transform/functions";
 import draco3d from "draco3dgltf";
@@ -54,6 +54,8 @@ interface RecipeModel {
   rotate?: Array<{ axis: Axis; degrees: number }>;
   scale?: number;
   stripFallbackTextures?: boolean;
+  /** Drops textures whose images are files beside the source that its repository lacks. */
+  dropExternalTextures?: boolean;
 }
 
 interface Recipe {
@@ -242,6 +244,8 @@ async function build(model: RecipeModel, source: Source, output: string): Promis
     throw new Error(`${model.file}: the source uses EXT_texture_webp, so set stripFallbackTextures`);
   }
 
+  untextureWithoutUVs(doc);
+
   const scene = sceneOf(doc, model.file);
   const scale = model.scale ?? 1;
   const frame = doc
@@ -276,6 +280,44 @@ async function build(model: RecipeModel, source: Source, output: string): Promis
   await doc.transform(prune(), dedup(), draco());
   await mkdir(path.dirname(output), { recursive: true });
   await writeFile(output, await io.writeBinary(doc));
+}
+
+/**
+ * Gives each primitive without texture coordinates an untextured copy of its material.
+ * Cesium compiles the textured shader regardless and fails on the missing coordinates,
+ * which stops all rendering; the Jason-2 source's foil has such primitives.
+ */
+function untextureWithoutUVs(doc: Document): void {
+  const untextured = new Map<Material, Material>();
+  for (const mesh of doc.getRoot().listMeshes()) {
+    for (const primitive of mesh.listPrimitives()) {
+      const material = primitive.getMaterial();
+      if (!material || primitive.getAttribute("TEXCOORD_0") || !hasTexture(doc, material)) {
+        continue;
+      }
+      let copy = untextured.get(material);
+      if (!copy) {
+        copy = material
+          .clone()
+          .setBaseColorTexture(null)
+          .setMetallicRoughnessTexture(null)
+          .setNormalTexture(null)
+          .setOcclusionTexture(null)
+          .setEmissiveTexture(null);
+        for (const extension of copy.listExtensions()) {
+          copy.setExtension(extension.extensionName, null);
+        }
+        untextured.set(material, copy);
+      }
+      primitive.setMaterial(copy);
+    }
+  }
+}
+
+/** Whether `material` samples a texture, its extensions' included. */
+function hasTexture(doc: Document, material: Material): boolean {
+  const graph = doc.getGraph();
+  return [material, ...material.listExtensions()].some((property) => graph.listChildEdges(property).some((edge) => edge.getChild() instanceof Texture));
 }
 
 /**
@@ -319,7 +361,37 @@ async function load(model: RecipeModel, source: Source): Promise<Document> {
     }
     return generate();
   }
-  return io.readBinary(await fetchSource(source, sourcePath!));
+  const bytes = await fetchSource(source, sourcePath!);
+  return model.dropExternalTextures ? withoutExternalTextures(bytes, model.file) : io.readBinary(bytes);
+}
+
+/**
+ * A GLB whose images are all external files, read without them: glTF-Transform cannot
+ * resolve them, so the textures, their images and samplers, and every material's
+ * reference to them go before the read. Base colours stay.
+ */
+async function withoutExternalTextures(bytes: Uint8Array, file: string): Promise<Document> {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const jsonLength = view.getUint32(12, true);
+  const json = JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + jsonLength)));
+  const images: Array<{ uri?: string }> = json.images ?? [];
+  if (images.some((image) => image.uri === undefined || image.uri.startsWith("data:"))) {
+    throw new Error(`${file}: dropExternalTextures drops every texture, but some images are embedded`);
+  }
+  delete json.images;
+  delete json.textures;
+  delete json.samplers;
+  for (const material of json.materials ?? []) {
+    delete material.pbrMetallicRoughness?.baseColorTexture;
+    delete material.pbrMetallicRoughness?.metallicRoughnessTexture;
+    delete material.normalTexture;
+    delete material.occlusionTexture;
+    delete material.emissiveTexture;
+  }
+  // The binary chunk follows the JSON chunk: its length, its type, then its bytes.
+  const binary = 20 + jsonLength;
+  const binaryLength = view.getUint32(binary, true);
+  return io.readJSON({ json, resources: { "@glb.bin": bytes.slice(binary + 8, binary + 8 + binaryLength) } });
 }
 
 async function fetchSource(source: Source, sourcePath: string): Promise<Uint8Array> {

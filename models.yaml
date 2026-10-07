@@ -134,6 +134,166 @@ models:
       triangles: 66962
       textures: []
       extensions: [ KHR_draco_mesh_compression ]
+  - file: TERRA.glb
+    satellites:
+      - { name: TERRA, noradId: 25994 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 266780
+      dimensions: [ 6.811, 13.027, 5.138 ]
+      triangles: 117120
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: AURA.glb
+    satellites:
+      - { name: AURA, noradId: 28376 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 417348
+      dimensions: [ 7.956, 17.035, 3.129 ]
+      triangles: 86455
+      textures: [ 256x256 image/webp, 256x256 image/webp, 512x512 image/webp, 1024x1024 image/webp ]
+      extensions: [ EXT_texture_webp, KHR_draco_mesh_compression ]
+  - file: CXO.glb
+    satellites:
+      - { name: CXO, noradId: 25867 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 148456
+      dimensions: [ 13.78, 19.507, 5.138 ]
+      triangles: 29570
+      textures: [ 256x256 image/webp, 256x256 image/webp, 1024x1024 image/webp ]
+      extensions: [ EXT_texture_webp, KHR_draco_mesh_compression ]
+  - file: FGRST-(GLAST).glb
+    satellites:
+      - { name: FGRST (GLAST), noradId: 33053 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 513492
+      dimensions: [ 14.954, 2.051, 2.904 ]
+      triangles: 172518
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: TESS.glb
+    satellites:
+      - { name: TESS, noradId: 43435 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 301204
+      dimensions: [ 1.611, 3.897, 1.634 ]
+      triangles: 16131
+      textures: [ 2048x2048 image/webp, 2048x2048 image/webp, 512x512 image/webp ]
+      extensions: [ EXT_texture_webp, KHR_draco_mesh_compression ]
+  - file: SWIFT.glb
+    satellites:
+      - { name: SWIFT, noradId: 28485 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 207496
+      dimensions: [ 3.83, 5.409, 3.989 ]
+      triangles: 38032
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: GPM-CORE.glb
+    satellites:
+      - { name: GPM-CORE, noradId: 39574 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 787584
+      dimensions: [ 4.93, 11.229, 6.978 ]
+      triangles: 266133
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: OCO-2.glb
+    satellites:
+      - { name: OCO 2, noradId: 40059 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 150236
+      dimensions: [ 1.243, 6.498, 2.513 ]
+      triangles: 41004
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: SDO.glb
+    satellites:
+      - { name: SDO, noradId: 36395 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 505856
+      dimensions: [ 6.259, 6.256, 5.196 ]
+      triangles: 259277
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: SENTINEL-6A.glb
+    satellites:
+      - { name: SENTINEL-6A, noradId: 46984 }
+      - { name: SENTINEL-6B, noradId: 66514 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 384288
+      dimensions: [ 5.133, 4.371, 2.324 ]
+      triangles: 22828
+      textures: [ 512x512 image/webp, 1024x1024 image/webp, 2048x2048 image/webp, 1024x1024 image/webp, 512x512 image/webp, 110x62 image/webp, 110x62 image/webp, 512x512 image/webp ]
+      extensions: [ EXT_texture_webp, KHR_draco_mesh_compression, KHR_texture_transform ]
+  - file: JASON-3.glb
+    satellites:
+      - { name: JASON-3, noradId: 41240 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 233464
+      dimensions: [ 3.7, 8.433, 2.013 ]
+      triangles: 65307
+      textures: []
+      extensions: [ EXT_texture_webp, KHR_draco_mesh_compression, KHR_materials_specular ]
+  - file: MMS-1.glb
+    satellites:
+      - { name: MMS 1, noradId: 40482 }
+      - { name: MMS 2, noradId: 40483 }
+      - { name: MMS 3, noradId: 40484 }
+      - { name: MMS 4, noradId: 40485 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 424052
+      dimensions: [ 28.878, 28.878, 16.934 ]
+      triangles: 136092
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
+  - file: THEMIS-A.glb
+    satellites:
+      - { name: THEMIS A, noradId: 30580 }
+      - { name: THEMIS D, noradId: 30797 }
+      - { name: THEMIS E, noradId: 30798 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 70024
+      dimensions: [ 6.09, 6.086, 7.207 ]
+      triangles: 11424
+      textures: [ 256x256 image/webp, 256x256 image/webp, 1024x1024 image/webp ]
+      extensions: [ EXT_texture_webp, KHR_draco_mesh_compression ]
+  - file: HINODE-(SOLAR-B).glb
+    satellites:
+      - { name: HINODE (SOLAR-B), noradId: 29479 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 279408
+      dimensions: [ 10.011, 2.289, 2.091 ]
+      triangles: 123651
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
   - file: STARLINK-V1.glb
     buses:
       - Starlink

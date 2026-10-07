@@ -46,7 +46,9 @@ launch years, decayed ones included; GCAT is cached in `.cache/gcat/`.
 where they are checked.
 
 The build fetches each source into `.cache/` or runs its generator, removes the
-listed nodes, drops the PNG/JPEG fallbacks of WebP textures, bakes every node
+listed nodes, drops the PNG/JPEG fallbacks of WebP textures and any textures whose
+images the source repository lacks, untextures primitives that have no texture
+coordinates (Cesium's shader fails on them and stops rendering), bakes every node
 transform, the rotation and scale included, into the vertices, writes it
 Draco-compressed, and measures every model into `models.yaml`. The baking is for
 Cesium, which sizes a rotated model's bounding sphere wrongly. A generated
