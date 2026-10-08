@@ -6,9 +6,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { type Document, type Material, Node, NodeIO, Primitive, type Scene, Texture, type vec3, type vec4 } from "@gltf-transform/core";
-import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
-import { dedup, draco, flatten, getBounds, join, prune, transformMesh } from "@gltf-transform/functions";
+import { ALL_EXTENSIONS, EXTTextureWebP } from "@gltf-transform/extensions";
+import { dedup, draco, flatten, getBounds, join, prune, simplify, transformMesh, weld } from "@gltf-transform/functions";
 import draco3d from "draco3dgltf";
+import { MeshoptSimplifier } from "meshoptimizer";
+import sharp from "sharp";
 import YAML, { isMap, isScalar, isSeq } from "yaml";
 
 import { CUBESATS } from "./generators/cubesat.ts";
@@ -51,11 +53,37 @@ interface RecipeModel {
   /** A fetched file at `path`, or a model built by one of GENERATORS. */
   source: { id: string; path?: string; generator?: string };
   removeNodes?: string[];
+  /** A pattern of node names to remove with their children, for a source with hundreds of detail parts. */
+  removeNodesMatching?: string;
+  /** Mirrors the source along this axis before the rotation, for a source drawn mirror-image. */
+  mirror?: Axis;
   rotate?: Array<{ axis: Axis; degrees: number }>;
   scale?: number;
   stripFallbackTextures?: boolean;
   /** Drops textures whose images are files beside the source that its repository lacks. */
   dropExternalTextures?: boolean;
+  /** Joins the meshes, one primitive per material, as a generated model's parts are. */
+  join?: boolean;
+  /** Simplifies the meshes within this error, a fraction of each joined mesh's extent. */
+  simplify?: number;
+  /** The longest texture edge in pixels, textures re-encoded as WebP. */
+  textureSize?: number;
+  /** Exceptions to textureSize, by texture name. */
+  textureSizes?: Record<string, number>;
+  /**
+   * Replaces metallic-roughness and normal maps with this metallic factor: the maps read
+   * as bare grey metal under Cesium's light, and normal detail is lost at satvis's range.
+   */
+  matte?: number;
+  /** Turns alpha-blended materials into cut-outs; large blended surfaces sort wrongly in Cesium. */
+  alphaMask?: boolean;
+  /** Materials drawn opaque whatever their alpha, by name, where the alpha hides real surfaces. */
+  opaqueMaterials?: string[];
+  /**
+   * A pattern of node names drawn single-sided: sheets modelled as two coincident faces,
+   * front and back, that a double-sided material draws on top of each other.
+   */
+  singleSidedNodes?: string;
 }
 
 interface Recipe {
@@ -238,6 +266,16 @@ async function build(model: RecipeModel, source: Source, output: string): Promis
   if (unmatched.size > 0) {
     throw new Error(`${model.file}: removeNodes names no node ${[...unmatched].join(", ")}; has the source changed?`);
   }
+  if (model.removeNodesMatching) {
+    const pattern = new RegExp(model.removeNodesMatching);
+    const matching = root.listNodes().filter((node) => pattern.test(node.getName()));
+    if (matching.length === 0) {
+      throw new Error(`${model.file}: removeNodesMatching matches no node; has the source changed?`);
+    }
+    for (const node of matching) {
+      node.dispose();
+    }
+  }
 
   // Reading keeps only the WebP, so prune() drops the PNG/JPEG fallback beside it.
   if (!model.stripFallbackTextures && root.listExtensionsUsed().some((ext) => ext.extensionName === "EXT_texture_webp")) {
@@ -245,13 +283,15 @@ async function build(model: RecipeModel, source: Source, output: string): Promis
   }
 
   untextureWithoutUVs(doc);
+  makeSingleSided(doc, model);
 
   const scene = sceneOf(doc, model.file);
   const scale = model.scale ?? 1;
+  const mirror = model.mirror ? FRAME_AXIS_TO_GLTF[model.mirror] : [0, 0, 0];
   const frame = doc
     .createNode("satvis-frame")
     .setRotation(rotation(model.rotate ?? []))
-    .setScale([scale, scale, scale]);
+    .setScale(mirror.map((m) => (m ? -scale : scale)) as vec3);
   for (const child of scene.listChildren()) {
     frame.addChild(child);
   }
@@ -266,20 +306,106 @@ async function build(model: RecipeModel, source: Source, output: string): Promis
     if (!mesh) {
       continue;
     }
-    if (mesh.listParents().filter((parent) => parent instanceof Node).length > 1) {
-      throw new Error(`${model.file}: mesh ${mesh.getName()} is shared by several nodes`);
-    }
-    transformMesh(mesh, node.getWorldMatrix());
+    // A mesh several nodes share is copied, so each bakes its own transform.
+    const owned = mesh.listParents().filter((parent) => parent instanceof Node).length > 1 ? mesh.clone() : mesh;
+    node.setMesh(owned);
+    transformMesh(owned, node.getWorldMatrix());
     node.setMatrix([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
   }
 
+  adjustMaterials(doc, model);
+
   // A generator makes one mesh per part; joined, a model is one draw call per material.
-  if (model.source.generator) {
+  if (model.source.generator || model.join) {
     await doc.transform(join({ keepNamed: false }));
   }
+  if (model.simplify !== undefined) {
+    await doc.transform(weld(), simplify({ simplifier: MeshoptSimplifier, ratio: 0, error: model.simplify }));
+  }
+  await resizeTextures(doc, model);
   await doc.transform(prune(), dedup(), draco());
   await mkdir(path.dirname(output), { recursive: true });
   await writeFile(output, await io.writeBinary(doc));
+}
+
+/**
+ * Gives the nodes singleSidedNodes matches a single-sided copy of each material, under
+ * the same name so the recipe's other material settings still apply to it.
+ */
+function makeSingleSided(doc: Document, model: RecipeModel): void {
+  if (!model.singleSidedNodes) {
+    return;
+  }
+  const pattern = new RegExp(model.singleSidedNodes);
+  const copies = new Map<Material, Material>();
+  const nodes = doc.getRoot().listNodes().filter((node) => node.getMesh() && pattern.test(node.getName()));
+  if (nodes.length === 0) {
+    throw new Error(`${model.file}: singleSidedNodes matches no node with a mesh`);
+  }
+  for (const node of nodes) {
+    const mesh = node.getMesh()!;
+    // A mesh other nodes share keeps its materials for them.
+    const owned = mesh.listParents().filter((parent) => parent instanceof Node).length > 1 ? mesh.clone() : mesh;
+    node.setMesh(owned);
+    for (const primitive of owned.listPrimitives()) {
+      const material = primitive.getMaterial();
+      if (!material?.getDoubleSided()) {
+        continue;
+      }
+      let copy = copies.get(material);
+      if (!copy) {
+        copy = material.clone().setDoubleSided(false);
+        copies.set(material, copy);
+      }
+      primitive.setMaterial(copy);
+    }
+  }
+}
+
+/** Applies a recipe's matte, alphaMask and opaqueMaterials to every material. */
+function adjustMaterials(doc: Document, model: RecipeModel): void {
+  const materials = doc.getRoot().listMaterials();
+  const unknown = (model.opaqueMaterials ?? []).filter((name) => !materials.some((material) => material.getName() === name));
+  if (unknown.length > 0) {
+    throw new Error(`${model.file}: opaqueMaterials names no material ${unknown.join(", ")}`);
+  }
+  for (const material of materials) {
+    if (model.opaqueMaterials?.includes(material.getName())) {
+      material.setAlphaMode("OPAQUE");
+    } else if (model.alphaMask && material.getAlphaMode() === "BLEND") {
+      material.setAlphaMode("MASK").setAlphaCutoff(0.5);
+    }
+    if (model.matte !== undefined) {
+      material.setMetallicRoughnessTexture(null).setNormalTexture(null).setMetallicFactor(model.matte).setRoughnessFactor(0.6);
+    }
+  }
+}
+
+/**
+ * Resizes each texture to fit its recipe size, textureSizes before textureSize, and
+ * re-encodes it as WebP. glTF-Transform's textureCompress cannot exempt textures by
+ * name: its pattern also tests each texture's URI, empty in a GLB.
+ */
+async function resizeTextures(doc: Document, model: RecipeModel): Promise<void> {
+  if (model.textureSize === undefined) {
+    return;
+  }
+  const sizes = new Map(Object.entries(model.textureSizes ?? {}));
+  const textures = doc.getRoot().listTextures();
+  const missing = [...sizes.keys()].filter((name) => !textures.some((texture) => texture.getName() === name));
+  if (missing.length > 0) {
+    throw new Error(`${model.file}: textureSizes names no texture ${missing.join(", ")}`);
+  }
+  doc.createExtension(EXTTextureWebP).setRequired(true);
+  for (const texture of textures) {
+    const image = texture.getImage();
+    if (!image) {
+      continue;
+    }
+    const size = sizes.get(texture.getName()) ?? model.textureSize;
+    const webp = await sharp(image).resize(size, size, { fit: "inside", withoutEnlargement: true }).webp({ quality: 80 }).toBuffer();
+    texture.setImage(new Uint8Array(webp)).setMimeType("image/webp").setURI("");
+  }
 }
 
 /**

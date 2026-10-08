@@ -11,11 +11,11 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 443656
-      dimensions: [ 71.333, 108.509, 14.577 ]
-      triangles: 169571
-      textures: []
-      extensions: [ KHR_draco_mesh_compression, KHR_materials_specular ]
+      bytes: 3093904
+      dimensions: [ 73.304, 99.219, 30.343 ]
+      triangles: 447537
+      textures: [ 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 1024x1024 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 1024x1024 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp ]
+      extensions: [ EXT_texture_webp, KHR_draco_mesh_compression ]
   - file: LANDSAT-8.glb
     satellites:
       - { name: LANDSAT 8, noradId: 39084 }

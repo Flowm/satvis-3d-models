@@ -55,6 +55,14 @@ Cesium, which sizes a rotated model's bounding sphere wrongly. A generated
 model's parts are then joined, one primitive per material. A model with neither
 a source path nor a generator is kept as it is and only measured.
 
+A large source can be cut to size in its recipe: `removeNodesMatching` drops
+nodes by a name pattern, `join` and `simplify` merge and thin its meshes, and
+`textureSize` and `textureSizes` shrink its textures. A few options fix how
+Cesium draws a source: `mirror` undoes a mirror image, `matte` replaces metallic
+and normal maps, `alphaMask` and `opaqueMaterials` stop alpha-blended surfaces
+from showing through each other, and `singleSidedNodes` keeps a sheet modelled as
+two coincident faces from drawing both. `build.ts` documents each field.
+
 To inspect the result, open `/models.html` in a satvis dev server.
 
 ## Licences

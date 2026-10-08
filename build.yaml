@@ -29,19 +29,43 @@ sources:
     license: MIT (LICENSE). Built from published dimensions, cited in each generator.
 
 models:
-  # The disc floating ~40 m above the station is a stray object, not part of the
-  # ISS. 2.3825 scales the 45.54-unit truss to its 108.5 m span. Turned so the
-  # truss runs port to starboard, the US segment leads, the Russian segment
-  # trails, and the arrays face the zenith.
+  # NASA JSC's IGOAL model of the station as it flies in 2026: roll-out arrays (iROSA)
+  # over wings 1A, 1B, 3A, 4A, 2B and 4B, Nauka with its robotic arm, Prichal, Bishop,
+  # and no visiting vehicles. Its 2.7 million triangles and 67 MB of textures are cut
+  # to size: the detail parts go, except the arrays' and radiators', the meshes are
+  # joined and simplified within 0.05% of their extent, and textures shrink to 512 px,
+  # the array atlases to 1024 px.
+  #
+  # The source is in inches under a 0.0025817 root scale, so 9.8386 restores metres:
+  # truss segments S0 and P1 come out 13.4 m and 13.8 m and the legacy wings 35.2 m x
+  # 11.4 m, against 13.4 m, 13.7 m and 35.05 m x 11.58 m (NASA). That root scale is
+  # negative, which mirrors the station: Kibo sat to starboard. Mirrored back, it is
+  # turned so the US segment leads and the arrays' truss runs port to starboard.
+  #
+  # Its materials blend wherever a texture has alpha; as cut-outs they draw solid. The
+  # truss atlas's alpha only marks the gaps between its islands, and the outboard
+  # radiator panels map onto such a gap, so the truss is drawn opaque: the colour
+  # under the gap is the radiators' light grey. Each solar array blanket is two
+  # coincident sheets, cells on one side and the backing on the other; drawn
+  # double-sided they fight for the same pixels, so the arrays are single-sided.
   - file: ISS-(ZARYA).glb
     satellites:
       - { name: ISS (ZARYA), noradId: 25544 }
-    source: { id: nasa, path: "3D Models/International Space Station (ISS) (B)/International Space Station (ISS) (B).glb" }
-    removeNodes: [bendedtru1, bendedtru2, bendedtru3, bendedtrus, pCylinder1, pCylinder2, pCylinder8]
+    source: { id: nasa, path: "3D Models/International Space Station (ISS) (D) (IGOAL)/International Space Station (ISS).glb" }
+    removeNodesMatching: "^(?!.*(IROSA|Radiator)).*(Details|Handrail|HandRail|_Bag|Cover)"
+    mirror: port
     rotate:
-      - { axis: port, degrees: 90 }
-      - { axis: velocity, degrees: 90 }
-    scale: 2.3825
+      - { axis: zenith, degrees: -90 }
+    scale: 9.8386
+    stripFallbackTextures: true
+    join: true
+    simplify: 0.0005
+    textureSize: 512
+    textureSizes: { Truss_Diffuse: 1024, IROSA_Diffuse: 1024 }
+    matte: 0.1
+    alphaMask: true
+    opaqueMaterials: [Truss]
+    singleSidedNodes: "Array|IROSA_Deployed"
 
   # Landsat 9 is a near-copy (same LEOStar-3 bus, OLI-2 and TIRS-2), so it shares
   # the model. Already in metres: 12.3 m with the array deployed, against a
