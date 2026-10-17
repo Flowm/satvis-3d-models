@@ -731,7 +731,6 @@ models:
       - { name: FLOCK 4G-30, noradId: 62679 }
       - { name: FLOCK 4G-31, noradId: 62652 }
       - { name: FLOCK 4G-33, noradId: 62685 }
-      - { name: FLOCK 4G-34, noradId: 62650 }
       - { name: FLOCK 4G-36, noradId: 62675 }
       - { name: FLOCK 4H-1, noradId: 66704 }
       - { name: FLOCK 4H-2, noradId: 66705 }
@@ -771,15 +770,23 @@ models:
       - { name: FLOCK 4Q-9, noradId: 58322 }
       - { name: FLOCK 4Q-13, noradId: 58328 }
       - { name: FLOCK 4Q-16, noradId: 58271 }
+      - { name: FLOCK 4J-1, noradId: 100970 }
+      - { name: FLOCK 4J-2, noradId: 101071 }
+      - { name: FLOCK 4J-3, noradId: 101072 }
+      - { name: FLOCK 4J-4, noradId: 101073 }
+      - { name: FLOCK 4J-5, noradId: 101074 }
     credit: satvis
     license: MIT (LICENSE). Built from published dimensions, cited in each generator.
     measured:
-      bytes: 3176
+      bytes: 3156
       dimensions: [ 0.7, 0.105, 0.36 ]
       triangles: 112
       textures: []
       extensions: [ KHR_draco_mesh_compression ]
   - file: SKYSAT.glb
+    satellites:
+      - { name: SKYSAT-A, noradId: 39418 }
+      - { name: SKYSAT-B, noradId: 40072 }
     buses:
       - SkySat-Gen2
     credit: satvis
@@ -796,8 +803,8 @@ models:
     credit: satvis
     license: MIT (LICENSE). Built from published dimensions, cited in each generator.
     measured:
-      bytes: 3304
-      dimensions: [ 0.56, 2.74, 0.95 ]
+      bytes: 3276
+      dimensions: [ 0.95, 2.74, 0.71 ]
       triangles: 156
       textures: []
       extensions: [ KHR_draco_mesh_compression ]

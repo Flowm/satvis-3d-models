@@ -740,7 +740,6 @@ models:
       - { name: FLOCK 4G-30, noradId: 62679 }
       - { name: FLOCK 4G-31, noradId: 62652 }
       - { name: FLOCK 4G-33, noradId: 62685 }
-      - { name: FLOCK 4G-34, noradId: 62650 }
       - { name: FLOCK 4G-36, noradId: 62675 }
       - { name: FLOCK 4H-1, noradId: 66704 }
       - { name: FLOCK 4H-2, noradId: 66705 }
@@ -780,9 +779,19 @@ models:
       - { name: FLOCK 4Q-9, noradId: 58322 }
       - { name: FLOCK 4Q-13, noradId: 58328 }
       - { name: FLOCK 4Q-16, noradId: 58271 }
+      - { name: FLOCK 4J-1, noradId: 100970 }
+      - { name: FLOCK 4J-2, noradId: 101071 }
+      - { name: FLOCK 4J-3, noradId: 101072 }
+      - { name: FLOCK 4J-4, noradId: 101073 }
+      - { name: FLOCK 4J-5, noradId: 101074 }
     source: { id: satvis, generator: superdove }
 
+  # The first-generation SkySat-A and B (60 × 60 × 80 cm, no propulsion) look much like
+  # the Gen2 SkySat-C; GCAT puts them on buses of their own, so they are listed.
   - file: SKYSAT.glb
+    satellites:
+      - { name: SKYSAT-A, noradId: 39418 }
+      - { name: SKYSAT-B, noradId: 40072 }
     buses: [SkySat-Gen2]
     source: { id: satvis, generator: skysat }
 
