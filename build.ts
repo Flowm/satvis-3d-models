@@ -26,6 +26,7 @@ import { o3b, o3bMpower } from "./generators/o3b.ts";
 import { oneweb } from "./generators/oneweb.ts";
 import { pelican, skySat, superDove } from "./generators/planet.ts";
 import { qianfan } from "./generators/qianfan.ts";
+import { tiangong } from "./generators/tiangong.ts";
 import { starlinkV1, starlinkV2Mini, starlinkV2MiniDirectToCell, starlinkV3 } from "./generators/starlink.ts";
 
 type Axis = "velocity" | "port" | "zenith";
@@ -149,6 +150,7 @@ const GENERATORS: Record<string, () => Document> = {
   "i-2k": i2k,
   "i-3k": i3k,
   "ekspress-1000": ekspress1000,
+  "css-(tianhe)": tiangong,
 };
 
 // Cesium flies glTF +Z along the velocity, +X to port and +Y to the zenith.

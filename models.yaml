@@ -294,6 +294,17 @@ models:
       triangles: 123651
       textures: []
       extensions: [ KHR_draco_mesh_compression ]
+  - file: CSS-(TIANHE).glb
+    satellites:
+      - { name: CSS (TIANHE), noradId: 48274 }
+    credit: satvis
+    license: MIT (LICENSE). Built from published dimensions, cited in each generator.
+    measured:
+      bytes: 12464
+      dimensions: [ 55.6, 44.299, 4.599 ]
+      triangles: 3312
+      textures: []
+      extensions: [ KHR_draco_mesh_compression ]
   - file: STARLINK-V1.glb
     buses:
       - Starlink

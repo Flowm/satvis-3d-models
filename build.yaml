@@ -369,6 +369,14 @@ models:
       - { axis: port, degrees: -90 }
     scale: 0.0436
 
+  # China's space station, generated from published dimensions and CMSA's photos
+  # (generators/tiangong.ts). The whole station is drawn on Tianhe's record; Wentian
+  # and Mengtian keep their own catalog records and get no model, as Nauka on the ISS.
+  - file: CSS-(TIANHE).glb
+    satellites:
+      - { name: CSS (TIANHE), noradId: 48274 }
+    source: { id: satvis, generator: css-(tianhe) }
+
   # Starlink, by bus, from published dimensions (generators/starlink.ts). v1.0 and
   # v1.5 share GCAT's bus "Starlink"; V2 mini Optimized looks like V2 mini.
   - file: STARLINK-V1.glb
