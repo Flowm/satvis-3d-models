@@ -19,6 +19,9 @@ import type { Document, Material } from "@gltf-transform/core";
 import { addArray, addArrayAlongTrack, addDish, material } from "./assembly.ts";
 import { type Finish, Model, type Rotation } from "./parts.ts";
 
+/** The arrays' cells, dark maroon in CMSA's photos, not the shared navy. */
+const CELLS: Finish = { color: [0.05, 0.02, 0.02], metallic: 0.3, roughness: 0.45 };
+
 /** The quilted grey-beige blankets on the resource cabins and the trusses. */
 const BEIGE: Finish = { color: [0.6, 0.57, 0.5], metallic: 0.2, roughness: 0.7 };
 
@@ -33,6 +36,8 @@ const ACROSS: Rotation = { axis: "z", degrees: 90 };
 /** Tianhe, Mengtian, Wentian and their wings. */
 export function tiangong(): Document {
   const model = new Model();
+  // Registered first under the shared name, so the shared array helpers use it.
+  model.material("cells", CELLS);
   const white = material(model, "white");
   const beige = model.material("beige", BEIGE);
   const aluminium = material(model, "aluminium");
@@ -55,11 +60,12 @@ export function tiangong(): Document {
   model.box("core-arm-1", aluminium, [0.35, 0.35, 4.5], { at: [-0.6, 1.7, 3.2] });
   model.box("core-arm-2", aluminium, [0.35, 0.35, 4.5], { at: [0.2, 1.75, 2.6] });
 
-  // Tianhe's wings off the small cylinder's aft end: two blankets either side of a mast.
+  // Tianhe's wings off the small cylinder's aft end: two blankets either side of a
+  // mast, 12.6 m from the hull to the tip.
   for (const side of [1, -1] as const) {
-    model.box(`tianhe-mast-${side}`, aluminium, [12.4, 0.12, 0.5], { at: [side * 8.6, 0, 0.7] });
+    model.box(`tianhe-mast-${side}`, aluminium, [12.6, 0.12, 0.5], { at: [side * 7.7, 0, 0.7] });
     for (const offset of [-1.5, 1.5]) {
-      addArray(model, `tianhe-wing-${side}-${offset}`, { span: 11.8, width: 2.5, columns: 1, rows: 6 }, [side * 2.9, 0, 0.7 + offset], side);
+      addArray(model, `tianhe-wing-${side}-${offset}`, { span: 11.2, width: 2.5, columns: 1, rows: 6 }, [side * 2.8, 0, 0.7 + offset], side);
     }
   }
 

@@ -6,9 +6,13 @@
 // in two rows of six on the Earth face and the three-panel wings come off the long
 // sides, as Arianespace's renders show; the panel sizes fit the 7.72 m span.
 //
-// O3b mPOWER (Boeing 702X): about 1,700 kg and a 27 m span (GCAT). The flat box, the
-// two octagonal phased arrays side by side along the wing axis (Boeing's factory
-// photo) and the five-panel wings on V-yokes are estimated from photos and renders.
+// O3b mPOWER (Boeing 702X): about 1,700 kg and a 27 m span (GCAT). Boeing's delivery
+// photos of F11 to F13 (September 2026) stack the satellites with their stowed wings
+// between them, so the wings hinge from the faces whose edge with the Earth face is
+// the long one, and the two octagonal phased arrays sit side by side along that long
+// side, across the wing axis, as SES's desk model also shows. On that model each wing
+// is four panels about as wide as the box is long, on V-yokes that meet at one point
+// on the body; the sizes are estimated from those photos and renders.
 
 import type { Document } from "@gltf-transform/core";
 
@@ -35,11 +39,11 @@ export function o3b(): Document {
 /** mPOWER: a flat black box, two phased arrays, and two long wings on V-yokes. */
 export function o3bMpower(): Document {
   const model = new Model();
-  const [width, height, length] = [2.8, 2.5, 1.3];
+  const [width, height, length] = [1.3, 2.5, 2.8];
   model.box("body", material(model, "blackMli"), [width, height, length], { at: [0, 0, 0] });
   const polished = material(model, "polished");
-  model.cylinder("phased-array-large", polished, 0.55, 0.1, 8, { at: [0.65, -height / 2 - 0.05, 0] });
-  model.cylinder("phased-array-small", polished, 0.4, 0.1, 8, { at: [-0.65, -height / 2 - 0.05, 0] });
-  addWings(model, { array: { span: 11.5, width: 1.2, columns: 1, rows: 5 }, edge: width / 2, yoke: 0.7, spread: [0.9, 0.1] });
+  model.cylinder("phased-array-large", polished, 0.55, 0.1, 8, { at: [0, -height / 2 - 0.05, 0.65] });
+  model.cylinder("phased-array-small", polished, 0.4, 0.1, 8, { at: [0, -height / 2 - 0.05, -0.65] });
+  addWings(model, { array: { span: 12.2, width: 2.7, columns: 1, rows: 4 }, edge: width / 2, yoke: 0.7, spread: [0.1, 1.2] });
   return model.doc;
 }

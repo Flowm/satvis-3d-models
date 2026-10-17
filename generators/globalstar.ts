@@ -6,6 +6,7 @@
 // kit); "two deployable, three segment solar arrays" (Spaceflight101). No dimensions
 // are published: GCAT's row is a copy of O3b's. The body, the two octagonal phased
 // arrays and the C-band antenna are sized from renders, the wings to GCAT's 12 m.
+// Thales Alenia Space's render shows the Earth deck silver-grey within gold edges.
 
 import type { Document } from "@gltf-transform/core";
 
@@ -21,6 +22,7 @@ export function globalstar2(): Document {
   const body = { nadirWidth: 2.0, zenithWidth: 1.4, height: 1.3, length: 3.0 };
   const half = body.height / 2;
   addTrapezoidBody(model, "body", material(model, "gold"), body);
+  model.box("earth-deck", material(model, "silverMli"), [body.nadirWidth - 0.16, 0.02, body.length - 0.16], { at: [0, -half - 0.01, 0] });
   const radome = model.material("radome", RADOME);
   model.cylinder("phased-array-large", radome, 0.6, 0.12, 8, { at: [0, -half - 0.06, 0.7] });
   model.cylinder("phased-array-small", radome, 0.45, 0.12, 8, { at: [0, -half - 0.06, -0.4] });

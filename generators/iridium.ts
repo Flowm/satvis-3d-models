@@ -4,10 +4,14 @@
 // About 860 kg, 3.1 × 2.4 × 1.5 m stowed, spanning 9.4 m (Iridium's labelled render;
 // eoPortal). A trapezoidal body whose Earth-facing panel, "3 by 1.5-meter", carries
 // the L-band main mission antenna, the Aireon payload and two steerable Ka feeder
-// dishes; four Ka crosslinks, two fixed fore and aft and two steerable to the sides;
-// two two-panel wings off the ends (Spaceflight101; eoPortal). The fixed fore-and-aft
-// crosslinks and the ram-facing hosted payload put the long axis along the velocity.
-// Antenna and panel sizes are not published and are read off renders and photos.
+// dishes; four Ka crosslinks, two fixed fore and aft and two steerable to the sides
+// (Spaceflight101; eoPortal). Iridium's hosted-payload slide (Gupta, OPAC 2010, p. 5)
+// labels the axes: the 3.1 m axis runs fore and aft, the hosted payload at the fore
+// end, and the two wings point left and right on booms from the long sides, each two
+// panels in a row with their long sides along the track, as Iridium's and Thales
+// Alenia Space's renders also show (eoPortal figs. 1, 4). The two feeder dishes sit at
+// opposite corners of the Earth deck (figs. 13, 15). Antenna, boom and panel sizes are
+// not published and are read off those images.
 
 import type { Document } from "@gltf-transform/core";
 
@@ -19,7 +23,7 @@ const MISSION_ANTENNA: Finish = { color: [0.78, 0.36, 0.14], metallic: 0.2, roug
 /** The body's white and silver panels. */
 const PANEL: Finish = { color: [0.8, 0.81, 0.83], metallic: 0.7, roughness: 0.35 };
 
-/** The trapezoidal body, its antennas, and two wings along the track. */
+/** The trapezoidal body, its antennas, and two wings across the track. */
 export function iridiumNext(): Document {
   const model = new Model();
   const body = { nadirWidth: 1.5, zenithWidth: 2.4, height: 1.5, length: 3.1 };
@@ -30,14 +34,15 @@ export function iridiumNext(): Document {
   model.box("mission-antenna", model.material("missionAntenna", MISSION_ANTENNA), [1.2, 0.06, 1.2], { at: [0, -half - 0.03, 0.2] });
   model.box("aireon", material(model, "white"), [0.4, 0.3, 0.7], { at: [0, -half - 0.15, 1.15] });
   for (const side of [1, -1]) {
-    addDish(model, `feeder-${side}`, "polished", 0.2, [side * 0.55, -half - 0.2, -1.3], "-y", [side * 0.45, -half, -1.3]);
+    addDish(model, `feeder-${side}`, "polished", 0.2, [side * 0.55, -half - 0.2, side * 1.3], "-y", [side * 0.45, -half, side * 1.3]);
     // The fixed crosslinks, fore and aft, sit below the wing booms' line.
     addDish(model, `crosslink-fixed-${side}`, "white", 0.175, [0, boomHeight - 0.6, side * end], side > 0 ? "+z" : "-z");
     // The steerable ones stand on the zenith face, looking to port and starboard.
     const x = side * (body.zenithWidth / 2 - 0.3);
     addDish(model, `crosslink-steerable-${side}`, "white", 0.175, [x, half + 0.2, -1.3], side > 0 ? "+x" : "-x", [x, half, -1.3]);
   }
-  // Two panels a wing, each about 1.4 × 2.6 m, on booms from the ends: 9.4 m tip to tip.
-  addWings(model, { array: { span: 2.8, width: 2.6, columns: 1, rows: 2 }, edge: end, yoke: 0.35, y: boomHeight, alongTrack: true });
+  // Two panels a wing, each about 1.2 × 2.4 m, on 1.2 m booms from the zenith edges
+  // of the long sides: 9.4 m tip to tip.
+  addWings(model, { array: { span: 2.3, width: 2.4, columns: 1, rows: 2 }, edge: body.zenithWidth / 2, yoke: 1.2, y: half - 0.15 });
   return model.doc;
 }

@@ -681,6 +681,8 @@ models:
       - { name: O3B MPOWER F9, noradId: 64866 }
       - { name: O3B MPOWER F10, noradId: 64867 }
       - { name: O3B MPOWER F11, noradId: 100686 }
+      # Catalogued with a zero for the letter O.
+      - { name: 03B MPOWER F12, noradId: 100687 }
       - { name: O3B MPOWER F13, noradId: 100688 }
     source: { id: satvis, generator: o3b-mpower }
 
