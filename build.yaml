@@ -757,8 +757,12 @@ models:
     source: { id: satvis, generator: cubesat-16u }
 
   # Generic geostationary comsats, each for a bus family and every variant GCAT
-  # gives it, its guesses included; DFH-4E and Eurostar Neo are larger designs left
-  # out. FS-1300, SSL-1300 and LS-1300 are one bus under Loral's, SSL's and Maxar's
+  # gives it, its guesses included. DFH-4E is a larger design left out, and so are
+  # three buses that hold more than comsats: DS-2000 carries Himawari,
+  # which flies one wing, Ekspress-1000 GLONASS-K, and Ekspress-2000 cylindrical
+  # bodies. A2100 also holds GPS III and GOES, whose own models win by NORAD id, and
+  # MUOS, whose large reflectors the generic outline leaves out.
+  # FS-1300, SSL-1300 and LS-1300 are one bus under Loral's, SSL's and Maxar's
   # names, but GCAT's FS-1300 holds GOES 8 to 12 and FS-1300O TerreStar 1 with its
   # 18 m reflector, so those two are left out.
   #
@@ -787,3 +791,59 @@ models:
     role: Generic geostationary communications satellite (DFH-4 bus)
     buses: [DFH-4, DFH-4?]
     source: { id: satvis, generator: dfh-4 }
+
+  - file: generic/A2100.glb
+    role: Generic geostationary communications satellite (Lockheed Martin A2100 bus)
+    buses: [A2100, A2100A, A2100AX, A2100AXS, A2100M]
+    source: { id: satvis, generator: a2100 }
+
+  - file: generic/DFH-3.glb
+    role: Generic geostationary communications satellite (DFH-3 bus)
+    buses: [DFH-3, DFH-3B]
+    source: { id: satvis, generator: dfh-3 }
+
+  - file: generic/SPACEBUS-4000.glb
+    role: Generic geostationary communications satellite (Spacebus 4000 bus)
+    buses: [Spacebus 4000B2, Spacebus 4000B3, Spacebus 4000C1, Spacebus 4000C2, Spacebus 4000C3, Spacebus 4000C4]
+    source: { id: satvis, generator: spacebus-4000 }
+
+  - file: generic/SPACEBUS-NEO.glb
+    role: Generic geostationary communications satellite (Spacebus NEO bus)
+    buses: [Spacebus NEO100, Spacebus NEO200]
+    source: { id: satvis, generator: spacebus-neo }
+
+  - file: generic/EUROSTAR-NEO.glb
+    role: Generic geostationary communications satellite (Eurostar Neo bus)
+    buses: [Eurostar NEO, Eurostar Neo]
+    source: { id: satvis, generator: eurostar-neo }
+
+  - file: generic/BSS-702SP.glb
+    role: Generic geostationary communications satellite (BSS-702SP bus)
+    buses: [BSS-702SP]
+    source: { id: satvis, generator: bss-702sp }
+
+  - file: generic/I-2K.glb
+    role: Generic geostationary communications satellite (ISRO I-1K and I-2K bus)
+    buses: [I1K, I2K]
+    source: { id: satvis, generator: i-2k }
+
+  # Listed by NORAD id: GCAT's I3K also holds NISAR, a radar satellite in low orbit.
+  - file: generic/I-3K.glb
+    role: Generic geostationary communications satellite (ISRO I-3K bus)
+    satellites:
+      - { name: GSAT-8, noradId: 37605 }
+      - { name: GSAT-10, noradId: 38779 }
+      - { name: GSAT-16, noradId: 40332 }
+      - { name: GSAT-15, noradId: 41028 }
+      - { name: GSAT-18, noradId: 41793 }
+      - { name: GSAT-19, noradId: 42747 }
+      - { name: GSAT-17, noradId: 42815 }
+      - { name: GSAT-29, noradId: 43698 }
+      - { name: GSAT-30, noradId: 45026 }
+      - { name: CMS-02 (GSAT-24), noradId: 52903 }
+    source: { id: satvis, generator: i-3k }
+
+  - file: generic/EKSPRESS-1000.glb
+    role: Generic geostationary communications satellite (Ekspress-1000 bus)
+    buses: [Ekspress-1000H, Ekspress-1000HTB, Ekspress-1000K, Ekspress-1000N]
+    source: { id: satvis, generator: ekspress-1000 }

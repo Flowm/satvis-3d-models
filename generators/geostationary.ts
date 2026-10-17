@@ -1,14 +1,16 @@
 // Generic geostationary communications satellites, one per bus. In the frame build.yaml
 // describes: +Z velocity, +Y zenith, +X port, metres.
 //
-// All three share the layout of a three-axis geostationary comsat: the body's long
+// All share the layout of a three-axis geostationary comsat: the body's long
 // axis points at the Earth, the apogee engine on the far end; the arrays turn on the
 // north and south faces, which carry the radiators and, in a geostationary orbit, lie
 // across the velocity; two deployed reflectors hang off the east and west faces, the
 // leading and trailing ones, lit by feeds at the Earth deck's edge; a smaller
 // reflector stands on the Earth deck. Payloads differ from satellite to satellite, so
 // the antennas are placeholders: sizes and positions are estimated, as is which way
-// the body's sides run where only its outline is published.
+// the body's sides run where only its outline is published. Unless a function says
+// otherwise, its body and span are GCAT's medians for the bus's satellites in orbit,
+// and its panel count is an estimate that fills the span.
 
 import type { Document } from "@gltf-transform/core";
 
@@ -59,6 +61,61 @@ export function bss702hp(): Document {
  */
 export function dfh4(): Document {
   return comsat({ width: 2.1, height: 3.6, depth: 2.36, span: 30, panels: 3, panelWidth: 2.2, yoke: 2, reflector: 1.1 });
+}
+
+/**
+ * Lockheed Martin A2100, its A, AX, AXS and M variants included: 2.5 m across, 6 m
+ * high and 26.9 m across the arrays, the AX's outline. The A is smaller (1.9 × 4.4 m,
+ * 18.9 m) and the AEHF's M longer (9.8 m).
+ */
+export function a2100(): Document {
+  return comsat({ width: 2.5, height: 6, depth: 2.5, span: 26.9, panels: 4, panelWidth: 2.2, yoke: 2, reflector: 1.2 });
+}
+
+/** DFH-3 and DFH-3B, BeiDou-2's GEO and IGSO satellites among them: 1.7 × 3 m and 18 m. */
+export function dfh3(): Document {
+  return comsat({ width: 1.7, height: 3, depth: 1.7, span: 18, panels: 3, panelWidth: 1.6, yoke: 1.5, reflector: 0.8 });
+}
+
+/**
+ * Thales Alenia Spacebus 4000, B2 to C4: 2.3 × 5 m and 30 m, the B2's outline; the
+ * C3 and C4 reach 37 m.
+ */
+export function spacebus4000(): Document {
+  return comsat({ width: 2.3, height: 5, depth: 2.3, span: 30, panels: 4, panelWidth: 2.2, yoke: 2, reflector: 1.1 });
+}
+
+/** Spacebus NEO: 3.5 × 8.4 m and 45 m, the NEO200's outline; the NEO100 is 2.5 × 5 m and 30 m. */
+export function spacebusNeo(): Document {
+  return comsat({ width: 3.5, height: 8.4, depth: 3.5, span: 45, panels: 5, panelWidth: 2.8, yoke: 2.5, reflector: 1.4 });
+}
+
+/** Airbus Eurostar Neo: 3 × 7 m and 40 m. */
+export function eurostarNeo(): Document {
+  return comsat({ width: 3, height: 7, depth: 3, span: 40, panels: 5, panelWidth: 2.6, yoke: 2.5, reflector: 1.4 });
+}
+
+/** Boeing 702SP, all-electric: 2.1 × 4.8 m and 40 m. */
+export function bss702sp(): Document {
+  return comsat({ width: 2.1, height: 4.8, depth: 2.1, span: 40, panels: 5, panelWidth: 2, yoke: 2, reflector: 1 });
+}
+
+/** ISRO's I-1K and I-2K, NavIC's satellites on the I-1K: 1.6 × 2.4 m and 9.5 m, the I-2K's outline. */
+export function i2k(): Document {
+  return comsat({ width: 1.6, height: 2.4, depth: 1.6, span: 9.5, panels: 2, panelWidth: 1.4, yoke: 1, reflector: 0.7 });
+}
+
+/** ISRO's I-3K: 1.8 × 3.1 m and 20 m. */
+export function i3k(): Document {
+  return comsat({ width: 1.8, height: 3.1, depth: 1.8, span: 20, panels: 3, panelWidth: 1.6, yoke: 2, reflector: 1 });
+}
+
+/**
+ * ISS Reshetnev Ekspress-1000H, HTB, K and N: 2 × 4 m and 15 m. The plain
+ * Ekspress-1000 is left out: GCAT puts GLONASS-K navigation satellites on it.
+ */
+export function ekspress1000(): Document {
+  return comsat({ width: 2, height: 4, depth: 2, span: 15, panels: 2, panelWidth: 1.8, yoke: 1, reflector: 0.9 });
 }
 
 /** The body, its radiators and engine, the antennas, and two wings. */

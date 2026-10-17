@@ -14,7 +14,7 @@ import sharp from "sharp";
 import YAML, { isMap, isScalar, isSeq } from "yaml";
 
 import { CUBESATS } from "./generators/cubesat.ts";
-import { bss702hp, dfh4, eurostar3000 } from "./generators/geostationary.ts";
+import { a2100, bss702hp, bss702sp, dfh3, dfh4, ekspress1000, eurostar3000, eurostarNeo, i2k, i3k, spacebus4000, spacebusNeo } from "./generators/geostationary.ts";
 import { beidou3Cast, beidou3Secm, galileoFoc, glonassM, gpsIIF, gpsIII, gpsIIR } from "./generators/gnss.ts";
 import { globalstar2 } from "./generators/globalstar.ts";
 import { guowang } from "./generators/guowang.ts";
@@ -140,6 +140,15 @@ const GENERATORS: Record<string, () => Document> = {
   "eurostar-3000": eurostar3000,
   "bss-702hp": bss702hp,
   "dfh-4": dfh4,
+  a2100,
+  "dfh-3": dfh3,
+  "spacebus-4000": spacebus4000,
+  "spacebus-neo": spacebusNeo,
+  "eurostar-neo": eurostarNeo,
+  "bss-702sp": bss702sp,
+  "i-2k": i2k,
+  "i-3k": i3k,
+  "ekspress-1000": ekspress1000,
 };
 
 // Cesium flies glTF +Z along the velocity, +X to port and +Y to the zenith.
