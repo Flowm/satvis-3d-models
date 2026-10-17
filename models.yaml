@@ -11,9 +11,9 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 3093904
-      dimensions: [ 73.304, 99.219, 30.343 ]
-      triangles: 447537
+      bytes: 3238376
+      dimensions: [ 73.305, 108.292, 30.343 ]
+      triangles: 447638
       textures: [ 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 1024x1024 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 1024x1024 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp ]
       extensions: [ EXT_texture_webp, KHR_draco_mesh_compression ]
   - file: LANDSAT-8.glb
@@ -34,7 +34,7 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 140340
+      bytes: 140320
       dimensions: [ 5.077, 2.212, 2.945 ]
       triangles: 11204
       textures: [ 1024x1024 image/webp, 512x512 image/webp, 1024x1024 image/webp ]
@@ -45,19 +45,29 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 177520
-      dimensions: [ 7.342, 2.315, 3.633 ]
+      bytes: 177504
+      dimensions: [ 3.633, 7.342, 2.315 ]
       triangles: 23662
       textures: [ 512x512 image/webp, 1024x1024 image/webp ]
       extensions: [ EXT_texture_webp, KHR_draco_mesh_compression ]
   - file: GRACE-FO-1.glb
     satellites:
       - { name: GRACE-FO 1, noradId: 43476 }
+    credit: NASA
+    license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
+    measured:
+      bytes: 138780
+      dimensions: [ 3.179, 1.943, 1.292 ]
+      triangles: 3921
+      textures: [ 1024x1024 image/webp, 720x480 image/webp ]
+      extensions: [ EXT_texture_webp, KHR_draco_mesh_compression, KHR_materials_specular ]
+  - file: GRACE-FO-2.glb
+    satellites:
       - { name: GRACE-FO 2, noradId: 43477 }
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 138792
+      bytes: 138800
       dimensions: [ 3.179, 1.943, 1.292 ]
       triangles: 3921
       textures: [ 1024x1024 image/webp, 720x480 image/webp ]
@@ -184,10 +194,10 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 301204
+      bytes: 150708
       dimensions: [ 1.611, 3.897, 1.634 ]
       triangles: 16131
-      textures: [ 2048x2048 image/webp, 2048x2048 image/webp, 512x512 image/webp ]
+      textures: [ 2048x2048 image/webp ]
       extensions: [ EXT_texture_webp, KHR_draco_mesh_compression ]
   - file: SWIFT.glb
     satellites:
@@ -217,8 +227,8 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 150236
-      dimensions: [ 1.243, 6.498, 2.513 ]
+      bytes: 148972
+      dimensions: [ 2.513, 6.498, 1.243 ]
       triangles: 41004
       textures: []
       extensions: [ KHR_draco_mesh_compression ]
@@ -251,7 +261,7 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 233464
+      bytes: 233496
       dimensions: [ 3.7, 8.433, 2.013 ]
       triangles: 65307
       textures: []

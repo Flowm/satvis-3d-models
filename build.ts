@@ -58,6 +58,8 @@ interface RecipeModel {
   removeNodesMatching?: string;
   /** Mirrors the source along this axis before the rotation, for a source drawn mirror-image. */
   mirror?: Axis;
+  /** Turns named nodes about one of their own axes before baking: joints a source poses wrongly. */
+  turnNodes?: Array<{ node: string; axis: "x" | "y" | "z"; degrees: number }>;
   rotate?: Array<{ axis: Axis; degrees: number }>;
   scale?: number;
   stripFallbackTextures?: boolean;
@@ -80,6 +82,13 @@ interface RecipeModel {
   alphaMask?: boolean;
   /** Materials drawn opaque whatever their alpha, by name, where the alpha hides real surfaces. */
   opaqueMaterials?: string[];
+  /** Linear RGB base colours by material name, replacing a colour texture that is wrong. */
+  baseColors?: Record<string, [number, number, number]>;
+  /**
+   * Linear RGB colours by node-name pattern: the matching nodes get untextured copies
+   * of their materials in that colour, for parts a shared texture maps wrongly.
+   */
+  nodeColors?: Record<string, [number, number, number]>;
   /**
    * A pattern of node names drawn single-sided: sheets modelled as two coincident faces,
    * front and back, that a double-sided material draws on top of each other.
@@ -298,6 +307,17 @@ async function build(model: RecipeModel, source: Source, output: string): Promis
 
   const scene = sceneOf(doc, model.file);
   const scale = model.scale ?? 1;
+  colorNodes(doc, model);
+  for (const { node: name, axis, degrees } of model.turnNodes ?? []) {
+    const node = root.listNodes().find((candidate) => candidate.getName() === name);
+    if (!node) {
+      throw new Error(`${model.file}: turnNodes names no node ${name}; has the source changed?`);
+    }
+    const half = (degrees * Math.PI) / 360;
+    const turn: vec4 = [axis === "x" ? Math.sin(half) : 0, axis === "y" ? Math.sin(half) : 0, axis === "z" ? Math.sin(half) : 0, Math.cos(half)];
+    // Applied after the node's own rotation, so about its own axis.
+    node.setRotation(multiply(node.getRotation(), turn));
+  }
   const mirror = model.mirror ? FRAME_AXIS_TO_GLTF[model.mirror] : [0, 0, 0];
   const frame = doc
     .createNode("satvis-frame")
@@ -373,17 +393,52 @@ function makeSingleSided(doc: Document, model: RecipeModel): void {
   }
 }
 
-/** Applies a recipe's matte, alphaMask and opaqueMaterials to every material. */
+/** Gives the nodes each nodeColors pattern matches untextured copies of their materials in its colour. */
+function colorNodes(doc: Document, model: RecipeModel): void {
+  for (const [source, color] of Object.entries(model.nodeColors ?? {})) {
+    const pattern = new RegExp(source);
+    const nodes = doc.getRoot().listNodes().filter((node) => node.getMesh() && pattern.test(node.getName()));
+    if (nodes.length === 0) {
+      throw new Error(`${model.file}: nodeColors pattern ${JSON.stringify(source)} matches no node with a mesh`);
+    }
+    const copies = new Map<Material, Material>();
+    for (const node of nodes) {
+      const mesh = node.getMesh()!;
+      // A mesh other nodes share keeps its materials for them.
+      const owned = mesh.listParents().filter((parent) => parent instanceof Node).length > 1 ? mesh.clone() : mesh;
+      node.setMesh(owned);
+      for (const primitive of owned.listPrimitives()) {
+        const material = primitive.getMaterial();
+        if (!material) {
+          continue;
+        }
+        let copy = copies.get(material);
+        if (!copy) {
+          copy = material.clone().setBaseColorTexture(null).setBaseColorFactor([...color, 1]);
+          copies.set(material, copy);
+        }
+        primitive.setMaterial(copy);
+      }
+    }
+  }
+}
+
+/** Applies a recipe's matte, alphaMask, opaqueMaterials and baseColors to every material. */
 function adjustMaterials(doc: Document, model: RecipeModel): void {
   const materials = doc.getRoot().listMaterials();
-  const unknown = (model.opaqueMaterials ?? []).filter((name) => !materials.some((material) => material.getName() === name));
+  const named = [...(model.opaqueMaterials ?? []), ...Object.keys(model.baseColors ?? {})];
+  const unknown = named.filter((name) => !materials.some((material) => material.getName() === name));
   if (unknown.length > 0) {
-    throw new Error(`${model.file}: opaqueMaterials names no material ${unknown.join(", ")}`);
+    throw new Error(`${model.file}: opaqueMaterials or baseColors names no material ${unknown.join(", ")}`);
   }
   for (const material of materials) {
     if (model.opaqueMaterials?.includes(material.getName())) {
       material.setAlphaMode("OPAQUE");
     } else if (model.alphaMask && material.getAlphaMode() === "BLEND") {
+    const color = model.baseColors?.[material.getName()];
+    if (color) {
+      material.setBaseColorTexture(null).setBaseColorFactor([...color, 1]);
+    }
       material.setAlphaMode("MASK").setAlphaCutoff(0.5);
     }
     if (model.matte !== undefined) {

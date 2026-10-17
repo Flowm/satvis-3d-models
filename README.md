@@ -61,7 +61,10 @@ nodes by a name pattern, `join` and `simplify` merge and thin its meshes, and
 Cesium draws a source: `mirror` undoes a mirror image, `matte` replaces metallic
 and normal maps, `alphaMask` and `opaqueMaterials` stop alpha-blended surfaces
 from showing through each other, and `singleSidedNodes` keeps a sheet modelled as
-two coincident faces from drawing both. `build.ts` documents each field.
+two coincident faces from drawing both. Others fix the source's own mistakes:
+`baseColors` and `nodeColors` replace a wrong colour texture, by material or by
+node, and `turnNodes` turns a joint the source poses wrongly. `build.ts` documents
+each field.
 
 To inspect the result, open `/models.html` in a satvis dev server.
 
