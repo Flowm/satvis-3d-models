@@ -321,7 +321,7 @@ models:
     credit: satvis
     license: MIT (LICENSE). Built from published dimensions, cited in each generator.
     measured:
-      bytes: 7880
+      bytes: 7884
       dimensions: [ 3.7, 1.3, 8.56 ]
       triangles: 680
       textures: []
@@ -333,7 +333,7 @@ models:
     credit: satvis
     license: MIT (LICENSE). Built from published dimensions, cited in each generator.
     measured:
-      bytes: 10060
+      bytes: 10064
       dimensions: [ 4.92, 33.86, 0.54 ]
       triangles: 1560
       textures: []
@@ -344,20 +344,47 @@ models:
     credit: satvis
     license: MIT (LICENSE). Built from published dimensions, cited in each generator.
     measured:
-      bytes: 10116
+      bytes: 10120
       dimensions: [ 4.92, 33.86, 0.54 ]
       triangles: 1572
       textures: []
       extensions: [ KHR_draco_mesh_compression ]
   - file: STARLINK-V3.glb
+    satellites:
+      - { name: STARLINK-40083, noradId: 100855 }
+      - { name: STARLINK-40084, noradId: 100856 }
+      - { name: STARLINK-40094, noradId: 100857 }
+      - { name: STARLINK-40099, noradId: 100858 }
+      - { name: STARLINK-40093, noradId: 100859 }
+      - { name: STARLINK-40098, noradId: 100860 }
+      - { name: STARLINK-40100, noradId: 100861 }
+      - { name: STARLINK-40075, noradId: 100862 }
+      - { name: STARLINK-40085, noradId: 100863 }
+      - { name: STARLINK-40086, noradId: 100864 }
+      - { name: STARLINK-40090, noradId: 100865 }
+      - { name: STARLINK-40091, noradId: 100866 }
+      - { name: STARLINK-40087, noradId: 100867 }
+      - { name: STARLINK-40092, noradId: 100868 }
+      - { name: STARLINK-40077, noradId: 100869 }
+      - { name: STARLINK-40080, noradId: 100870 }
+      - { name: STARLINK-40079, noradId: 100871 }
+      - { name: STARLINK-40081, noradId: 100872 }
+      - { name: STARLINK-40088, noradId: 100873 }
+      - { name: STARLINK-40078, noradId: 100874 }
+      - { name: STARLINK-40103, noradId: 100875 }
+      - { name: STARLINK-40101, noradId: 100876 }
+      - { name: STARLINK-40082, noradId: 100877 }
+      - { name: STARLINK-40076, noradId: 100878 }
+      - { name: STARLINK-40095, noradId: 100879 }
+      - { name: STARLINK-40097, noradId: 100880 }
     buses:
       - Starlink V3
     credit: satvis
     license: MIT (LICENSE). Built from published dimensions, cited in each generator.
     measured:
-      bytes: 14124
-      dimensions: [ 7.22, 46.66, 0.62 ]
-      triangles: 4132
+      bytes: 14668
+      dimensions: [ 7.22, 48.06, 0.62 ]
+      triangles: 4252
       textures: []
       extensions: [ KHR_draco_mesh_compression ]
   - file: ONEWEB.glb

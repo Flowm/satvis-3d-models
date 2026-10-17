@@ -14,6 +14,8 @@ export const FINISHES = {
   cells: { color: [0.03, 0.045, 0.12], metallic: 0.3, roughness: 0.45 },
   /** Black paint: booms, laser terminals, thrusters. */
   black: { color: [0.015, 0.015, 0.015], metallic: 0, roughness: 0.9 },
+  /** Low-reflectivity black paint on open surfaces seen from either side: Starlink V2's dishes. */
+  blackPaint: { color: [0.02, 0.02, 0.02], metallic: 0, roughness: 0.9, doubleSided: true },
   /** White paint and diffuse radomes, seen from either side. */
   white: { color: [0.85, 0.85, 0.86], metallic: 0, roughness: 0.6, doubleSided: true },
   /** Polished metal: dishes and antenna fins, seen from either side. */

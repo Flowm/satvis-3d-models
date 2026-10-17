@@ -8,7 +8,9 @@
 //
 // On every generation the arrays leave from the long sides of the bus, and a spine
 // runs along the long axis: SpaceX's V1.5/V2/V3 comparison render (x.com/SpaceX,
-// status 1977873370688700846), the V3 update's top view, and its 2020 v1 drawings.
+// status 1977873370688700846), the V3 update's top view, and the v1 render in its
+// brightness-mitigation guide (starlink.com/public-files/
+// BrightnessMitigationBestPracticesSatelliteOperators.pdf, p. 3).
 // Which way the bus points along the track is not published; here its long axis runs
 // along the velocity and the arrays across it.
 //
@@ -24,6 +26,8 @@ import { type Finish, Model } from "./parts.ts";
 
 /** The dark panels on the bus top. */
 const DECK: Finish = { color: [0.04, 0.04, 0.05], metallic: 0.2, roughness: 0.6 };
+/** V3's bare-metal top panels, silver in every SpaceX render of it. */
+const BARE_DECK: Finish = { color: [0.7, 0.71, 0.73], metallic: 0.8, roughness: 0.35 };
 
 /** A Starlink bus's size. */
 interface Bus {
@@ -36,16 +40,25 @@ interface Bus {
 }
 
 /**
- * The bus: an aluminium body, two dark top panels either side of the spine, and
- * the mirror film under it.
+ * The bus: an aluminium body, top panels either side of the spine, and the mirror film
+ * under it. The panels are dark in one strip a side unless `bareDeck` lays them out
+ * as V3's, bare metal in three a side between cross members.
  */
-function addBus(model: Model, bus: Bus): void {
-  const deck = model.material("deck", DECK);
+function addBus(model: Model, bus: Bus, bareDeck = false): void {
   const aluminium = material(model, "aluminium");
+  const deck = bareDeck ? model.material("bare-deck", BARE_DECK) : model.material("deck", DECK);
+  const rows = bareDeck ? 3 : 1;
   model.box("bus", aluminium, [bus.width, bus.height, bus.length], { at: [0, 0, 0] });
+  const rowLength = (bus.length - 0.2) / rows;
   for (const side of [1, -1]) {
     const width = bus.width / 2 - 0.12;
-    model.box(`deck-${side}`, deck, [width, 0.02, bus.length - 0.2], { at: [side * (width / 2 + 0.06), bus.height / 2 + 0.01, 0] });
+    for (let row = 0; row < rows; row++) {
+      const z = -bus.length / 2 + 0.1 + (row + 0.5) * rowLength;
+      model.box(`deck-${side}-${row}`, deck, [width, 0.02, rowLength - 0.08], { at: [side * (width / 2 + 0.06), bus.height / 2 + 0.01, z] });
+    }
+  }
+  for (let row = 1; row < rows; row++) {
+    model.box(`cross-member-${row}`, aluminium, [bus.width, 0.05, 0.08], { at: [0, bus.height / 2 + 0.025, -bus.length / 2 + 0.1 + row * rowLength] });
   }
   model.box("spine", aluminium, [0.08, 0.05, bus.length], { at: [0, bus.height / 2 + 0.025, 0] });
   model.box("mirror", material(model, "mirror"), [bus.width - 0.06, 0.01, bus.length - 0.06], { at: [0, -bus.height / 2 - 0.005, 0] });
@@ -73,16 +86,16 @@ function addLasers(model: Model, positions: Array<[number, number]>): void {
  * A backhaul or gateway dish facing the Earth, on an arm from the bus's lower edge at
  * `mount` (x, z) out to the dish at `at` (x, z).
  */
-function addEarthDish(model: Model, name: string, finish: "white" | "polished", radius: number, bus: Bus, mount: [number, number], at: [number, number]): void {
+function addEarthDish(model: Model, name: string, finish: "white" | "polished" | "blackPaint", radius: number, bus: Bus, mount: [number, number], at: [number, number]): void {
   const underside = -bus.height / 2;
   addDish(model, name, finish, radius, [at[0], underside - 0.05, at[1]], "-y", [mount[0], underside, mount[1]]);
 }
 
 /**
  * v1.0 and v1.5: one array, 8.1 × 2.8 m, on a 2.8 × 1.3 m bus. On station "the solar
- * array goes vertical" (SpaceX, 2020), raised from the bus on two short posts as
- * SpaceX's 2020 drawing shows, and turns about its hinge to follow the Sun; it is
- * drawn upright, with the 2 × 12 panels of that drawing. Underneath, four phased
+ * array goes vertical" (SpaceX, 2020), raised from the bus on two short posts as the
+ * v1 render in SpaceX's brightness-mitigation guide shows, and turns about its hinge
+ * to follow the Sun; it is drawn upright, with the 2 × 12 panels of that render. Underneath, four phased
  * arrays in a block over most of the length and two "white diffuse parabolic
  * antennas", one at each end. v1.0's visors and v1.5's laser terminals are too
  * small to see at satvis's scale.
@@ -148,37 +161,40 @@ function v2Mini(model: Model): Model {
     [-0.65, 0],
     [0.65, 1.35],
   ]);
-  // On arms outside the outline: two at the corners of one end, one at the other.
-  addEarthDish(model, "backhaul-0", "polished", 0.35, bus, [hx, hz - 0.3], [hx + 0.45, hz]);
-  addEarthDish(model, "backhaul-1", "polished", 0.35, bus, [-hx, hz - 0.3], [-hx - 0.45, hz]);
-  addEarthDish(model, "backhaul-2", "polished", 0.35, bus, [hx, -hz + 0.3], [hx + 0.45, -hz]);
+  // On arms outside the outline: two at the corners of one end, one at the other,
+  // painted "Low Reflectivity Black" (SpaceX's brightness-mitigation guide, p. 8).
+  addEarthDish(model, "backhaul-0", "blackPaint", 0.35, bus, [hx, hz - 0.3], [hx + 0.45, hz]);
+  addEarthDish(model, "backhaul-1", "blackPaint", 0.35, bus, [-hx, hz - 0.3], [-hx - 0.45, hz]);
+  addEarthDish(model, "backhaul-2", "blackPaint", 0.35, bus, [hx, -hz + 0.3], [hx + 0.45, -hz]);
   addLasers(model, [
     [-0.6, hz + 0.15],
     [0.6, -hz - 0.15],
     [-0.6, -hz - 0.15],
   ]);
-  addThruster(model, hz, 1, 0.12);
+  // The nozzle faces aft: the thruster raises the orbit and makes up drag.
+  addThruster(model, hz, -1, 0.12);
   addWings(model, { array: { span: 12.8, width: 4.1, columns: 2, rows: 16 }, edge: hx, yoke: 2.8, spread: [0.15, 0.7] });
   return model;
 }
 
 /**
  * V3, launched on Starship from 28 September 2026. Each array is "four segments" of a
- * "19-metre-long" blanket "stitched together" (SpaceX); side by side, that is a
- * 19.5 m array. SpaceX's renders put its width at about 0.55 of the bus length in the
- * V3 update's top view, and at a little under V2's 4.1 m beside V2 mini in the
- * comparison: 3.7 m. FCC's 2022 Starship form factor gives the same length but 6.36 m
- * of width, an envelope SpaceX calls conservative; its 6.4 × 2.7 m bus matches the
- * renders. The gap between array roots is about 0.4 of an array's length: 2.5 m of
- * boom each side, a 47 m span. GCAT's 160 m reads the four segments end to end. Three
- * lasers sit at each end of the spine and four backhaul dishes on arms at the
- * corners.
+ * "19-metre-long" blanket "stitched together" (SpaceX), side by side; FCC's 2022
+ * Starship form factor gives the array as 20.2 × 6.36 m, and the V3 update's top view
+ * measures 20 to 21 m, so the length is FCC's. The width is SpaceX's renders': about
+ * 0.55 of the bus length in that top view, and a little under V2's 4.1 m beside V2
+ * mini in the comparison, so 3.7 m, inside FCC's envelope, which SpaceX calls
+ * conservative; its 6.4 × 2.7 m bus matches the renders. The gap between array roots
+ * is about 0.4 of an array's length: 2.5 m of boom each side, a 48 m span. GCAT's 160 m
+ * reads the four segments end to end. Three lasers sit at each end of the spine, four
+ * backhaul dishes on arms at the corners, and the zenith deck is bare metal in 2 × 3
+ * panels. The thruster's place is estimated; SpaceX's July 2026 photos show it firing.
  */
 export function starlinkV3(): Document {
   const model = new Model();
   const bus: Bus = { width: 2.7, length: 6.4, height: 0.3 };
   const [hx, hz] = [bus.width / 2, bus.length / 2];
-  addBus(model, bus);
+  addBus(model, bus, true);
   // How many user arrays V3 carries is not published; the render shows a 2 × 3 grid.
   addPhasedArrays(model, bus, [1.2, 2], [
     [0.65, -2.1],
@@ -197,14 +213,16 @@ export function starlinkV3(): Document {
   for (const [i, [sx, sz]] of corners.entries()) {
     addEarthDish(model, `backhaul-${i}`, "polished", 0.55, bus, [sx * hx, sz * (hz - 0.8)], [sx * (hx + 0.7), sz * (hz - 0.3)]);
   }
+  // Off the spine's centreline, which ends in a bracket in the top view.
   addLasers(model, [
-    [-0.7, hz + 0.15],
-    [0, hz + 0.15],
-    [0.7, hz + 0.15],
-    [-0.7, -hz - 0.15],
-    [0, -hz - 0.15],
-    [0.7, -hz - 0.15],
+    [-0.9, hz + 0.15],
+    [-0.4, hz + 0.15],
+    [0.65, hz + 0.15],
+    [-0.9, -hz - 0.15],
+    [-0.4, -hz - 0.15],
+    [0.65, -hz - 0.15],
   ]);
-  addWings(model, { array: { span: 19.5, width: 3.7, columns: 4, rows: 32 }, edge: hx, yoke: 2.5, spread: [0.2, 0.6] });
+  addThruster(model, hz, -1, 0.15);
+  addWings(model, { array: { span: 20.2, width: 3.7, columns: 4, rows: 32 }, edge: hx, yoke: 2.5, spread: [0.2, 0.6] });
   return model.doc;
 }

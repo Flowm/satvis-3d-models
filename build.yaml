@@ -457,7 +457,36 @@ models:
     buses: [Starlink V2MD]
     source: { id: satvis, generator: starlink-v2-mini-direct-to-cell }
 
+  # GCAT has no bus yet for the V3s launched on Starship on 2026-09-28, so they are
+  # listed by NORAD id until it does.
   - file: STARLINK-V3.glb
+    satellites:
+      - { name: STARLINK-40083, noradId: 100855 }
+      - { name: STARLINK-40084, noradId: 100856 }
+      - { name: STARLINK-40094, noradId: 100857 }
+      - { name: STARLINK-40099, noradId: 100858 }
+      - { name: STARLINK-40093, noradId: 100859 }
+      - { name: STARLINK-40098, noradId: 100860 }
+      - { name: STARLINK-40100, noradId: 100861 }
+      - { name: STARLINK-40075, noradId: 100862 }
+      - { name: STARLINK-40085, noradId: 100863 }
+      - { name: STARLINK-40086, noradId: 100864 }
+      - { name: STARLINK-40090, noradId: 100865 }
+      - { name: STARLINK-40091, noradId: 100866 }
+      - { name: STARLINK-40087, noradId: 100867 }
+      - { name: STARLINK-40092, noradId: 100868 }
+      - { name: STARLINK-40077, noradId: 100869 }
+      - { name: STARLINK-40080, noradId: 100870 }
+      - { name: STARLINK-40079, noradId: 100871 }
+      - { name: STARLINK-40081, noradId: 100872 }
+      - { name: STARLINK-40088, noradId: 100873 }
+      - { name: STARLINK-40078, noradId: 100874 }
+      - { name: STARLINK-40103, noradId: 100875 }
+      - { name: STARLINK-40101, noradId: 100876 }
+      - { name: STARLINK-40082, noradId: 100877 }
+      - { name: STARLINK-40076, noradId: 100878 }
+      - { name: STARLINK-40095, noradId: 100879 }
+      - { name: STARLINK-40097, noradId: 100880 }
     buses: [Starlink V3]
     source: { id: satvis, generator: starlink-v3 }
 
