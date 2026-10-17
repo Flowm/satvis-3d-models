@@ -14,7 +14,7 @@ import sharp from "sharp";
 import YAML, { isMap, isScalar, isSeq } from "yaml";
 
 import { CUBESATS } from "./generators/cubesat.ts";
-import { a2100, bss702hp, bss702sp, dfh3, dfh4, ekspress1000, eurostar3000, eurostarNeo, i2k, i3k, spacebus4000, spacebusNeo } from "./generators/geostationary.ts";
+import { a2100, bss702hp, bss702sp, dfh3, dfh3Navigation, dfh4, ekspress1000, eurostar3000, eurostarNeo, i1k, i2k, i3k, insat3d, spacebus4000, spacebusNeo } from "./generators/geostationary.ts";
 import { beidou3Cast, beidou3Secm, galileoFoc, glonassM, gpsIIF, gpsIII, gpsIIR } from "./generators/gnss.ts";
 import { globalstar2 } from "./generators/globalstar.ts";
 import { guowang } from "./generators/guowang.ts";
@@ -159,6 +159,9 @@ const GENERATORS: Record<string, () => Document> = {
   "i-2k": i2k,
   "i-3k": i3k,
   "ekspress-1000": ekspress1000,
+  "dfh-3-navigation": dfh3Navigation,
+  "i-1k": i1k,
+  "insat-3d": insat3d,
   "css-(tianhe)": tiangong,
 };
 
@@ -304,9 +307,6 @@ async function build(model: RecipeModel, source: Source, output: string): Promis
 
   untextureWithoutUVs(doc);
   makeSingleSided(doc, model);
-
-  const scene = sceneOf(doc, model.file);
-  const scale = model.scale ?? 1;
   colorNodes(doc, model);
   for (const { node: name, axis, degrees } of model.turnNodes ?? []) {
     const node = root.listNodes().find((candidate) => candidate.getName() === name);
@@ -318,6 +318,9 @@ async function build(model: RecipeModel, source: Source, output: string): Promis
     // Applied after the node's own rotation, so about its own axis.
     node.setRotation(multiply(node.getRotation(), turn));
   }
+
+  const scene = sceneOf(doc, model.file);
+  const scale = model.scale ?? 1;
   const mirror = model.mirror ? FRAME_AXIS_TO_GLTF[model.mirror] : [0, 0, 0];
   const frame = doc
     .createNode("satvis-frame")
@@ -432,13 +435,13 @@ function adjustMaterials(doc: Document, model: RecipeModel): void {
     throw new Error(`${model.file}: opaqueMaterials or baseColors names no material ${unknown.join(", ")}`);
   }
   for (const material of materials) {
-    if (model.opaqueMaterials?.includes(material.getName())) {
-      material.setAlphaMode("OPAQUE");
-    } else if (model.alphaMask && material.getAlphaMode() === "BLEND") {
     const color = model.baseColors?.[material.getName()];
     if (color) {
       material.setBaseColorTexture(null).setBaseColorFactor([...color, 1]);
     }
+    if (model.opaqueMaterials?.includes(material.getName())) {
+      material.setAlphaMode("OPAQUE");
+    } else if (model.alphaMask && material.getAlphaMode() === "BLEND") {
       material.setAlphaMode("MASK").setAlphaCutoff(0.5);
     }
     if (model.matte !== undefined) {

@@ -898,11 +898,18 @@ models:
 
   - file: generic/BSS-702HP.glb
     role: Generic geostationary communications satellite (BSS-702HP bus)
-    buses: [BSS-702HP]
+    # BSS-702MP+ is left out: ViaSat-3's eight-panel wings and one huge reflector on a
+    # long boom are not this outline.
+    buses: [BSS-702HP, BSS-702MP]
     source: { id: satvis, generator: bss-702hp }
 
   - file: generic/DFH-4.glb
     role: Generic geostationary communications satellite (DFH-4 bus)
+    # GCAT puts LaoSat 1 and ChinaSat 16 on DFH-3B, but they are DFH-4s (CGWIC), as
+    # GCAT's own outline for them shows.
+    satellites:
+      - { name: LAOSAT 1, noradId: 41034 }
+      - { name: CHINASAT 16 (SJ-13), noradId: 42662 }
     buses: [DFH-4, DFH-4?]
     source: { id: satvis, generator: dfh-4 }
 
@@ -915,6 +922,25 @@ models:
     role: Generic geostationary communications satellite (DFH-3 bus)
     buses: [DFH-3, DFH-3B]
     source: { id: satvis, generator: dfh-3 }
+
+  # BeiDou's IGSO and MEO satellites on the DFH-3 and DFH-3B carry navigation arrays,
+  # not the comsat's reflectors; listed by NORAD id, so the bus model does not draw them.
+  - file: generic/DFH-3-NAVIGATION.glb
+    role: Generic navigation satellite (DFH-3 and DFH-3B bus)
+    satellites:
+      - { name: BEIDOU-2 IGSO-2, noradId: 37256 }
+      - { name: BEIDOU-2 IGSO-3, noradId: 37384 }
+      - { name: BEIDOU-2 IGSO-4, noradId: 37763 }
+      - { name: BEIDOU-2 IGSO-5, noradId: 37948 }
+      - { name: BEIDOU-2 M3, noradId: 38250 }
+      - { name: BEIDOU-2 M4, noradId: 38251 }
+      - { name: BEIDOU-2 M6, noradId: 38775 }
+      - { name: BEIDOU-2 IGSO-6, noradId: 41434 }
+      - { name: BEIDOU-2 IGSO-7, noradId: 43539 }
+      - { name: BEIDOU-3 IGSO-1, noradId: 44204 }
+      - { name: BEIDOU-3 IGSO-2, noradId: 44337 }
+      - { name: BEIDOU-3 IGSO-3, noradId: 44709 }
+    source: { id: satvis, generator: dfh-3-navigation }
 
   - file: generic/SPACEBUS-4000.glb
     role: Generic geostationary communications satellite (Spacebus 4000 bus)
@@ -937,9 +963,23 @@ models:
     source: { id: satvis, generator: bss-702sp }
 
   - file: generic/I-2K.glb
-    role: Generic geostationary communications satellite (ISRO I-1K and I-2K bus)
-    buses: [I1K, I2K]
+    role: Generic geostationary communications satellite (ISRO I-2K bus)
+    buses: [I2K]
     source: { id: satvis, generator: i-2k }
+
+  # NavIC's satellites, most of those on the I-1K, carry no comsat reflectors.
+  - file: generic/I-1K.glb
+    role: Generic navigation satellite (ISRO I-1K bus)
+    buses: [I1K]
+    source: { id: satvis, generator: i-1k }
+
+  # ISRO's weather satellites on the I-2K, with one wing and no comsat reflectors.
+  - file: INSAT-3D.glb
+    satellites:
+      - { name: INSAT-3D, noradId: 39216 }
+      - { name: INSAT-3DR, noradId: 41752 }
+      - { name: INSAT-3DS, noradId: 58990 }
+    source: { id: satvis, generator: insat-3d }
 
   # Listed by NORAD id: GCAT's I3K also holds NISAR, a radar satellite in low orbit.
   - file: generic/I-3K.glb

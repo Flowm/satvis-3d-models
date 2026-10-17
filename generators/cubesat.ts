@@ -3,14 +3,17 @@
 //
 // Sizes follow the CubeSat Design Specification (Cal Poly, rev. 14.1): a unit is
 // 10 cm across and 11.35 cm long, rails included; two units across are 22.63 cm, as
-// the 6U and 12U specification gives them. How the units stack in the 8U and 16U,
-// 2 × 1 × 4 and 2 × 2 × 4, is read off GCAT's 0.4 × 0.2 m dimensions for them.
+// the 6U and 12U specification gives them. The 6U and 12U take the 34.05 cm length
+// Exolaunch's EXOpod Nova manual calls standard, three units' length; the CDS's
+// 36.6 cm is Exolaunch's 6UXL and 12UXL. The 8U and 16U stack 2 × 1 × 4 and 2 × 2 × 4
+// (Exolaunch: 226.3 × 100 × 454 and 226.3 × 226.3 × 454 mm).
 //
-// GCAT draws about half the 3U, 6U and 12U in orbit, and most 16U, with two deployed
-// panels; these models show them, the smaller sizes with body-mounted cells only. A
-// wing is a row of panels the size of the broad face, hinged on its long edges; the
-// spans, 0.3 m for the 3U, 0.7 m for the 6U and 1.6 m for the 12U and 16U, are
-// GCAT's medians. Flying long axis forward with the panels to the zenith is one
+// GCAT draws about 40 % of the 6U and 12U in orbit, and most 16U, wider than their
+// bodies, with deployed panels; GCAT cannot tell a 3U's panels apart, as they span its
+// body length. These models show panels on the 3U to 16U, the smaller sizes with
+// body-mounted cells only. A wing is a row of panels the size of the broad face,
+// hinged on its long edges, as many as come nearest GCAT's median span: 0.6 m for the
+// 6U, 1.4 m for the 12U and 1.6 m for the 16U, drawn 0.68, 1.58 and 1.58 m. Flying long axis forward with the panels to the zenith is one
 // common attitude among many.
 
 import type { Document } from "@gltf-transform/core";
