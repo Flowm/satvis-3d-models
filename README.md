@@ -30,8 +30,9 @@ screen, most detailed first:
 
 An app may draw a copy while the model's bounding sphere spans at most its
 `maxPoints` points on screen, the copy with the smallest such `maxPoints`; above
-them all it draws `file`. The sphere is the full model's: Cesium sizes it from the
-bounding box's diagonal. An app that ignores `lods` draws `file` at every size.
+them all it draws `file`. The sphere is the one drawn, the copy's while it draws, within
+half a percent of the model's: Cesium sizes it from the bounding box's diagonal. An app
+that ignores `lods` draws `file` at every size.
 
 A model lists every satellite it depicts, so one file serves a constellation; a
 NORAD id may appear under one model only. A constellation too large to list names
@@ -89,9 +90,12 @@ the `maxPoints` it is drawn up to, and an `error` in points (1 when left out). T
 copy is simplified until a surface would move more than `error` points at
 `maxPoints`, and parts smaller than that are dropped, so the copy follows from
 the size it is drawn at rather than from a triangle count. Its own `textureSize`
-and `textureSizes` replace the model's. Judge a copy at `maxPoints` and at the
-size it is usually drawn: `/models.html` frames one model to its window, so the
-window's shorter side sets that size.
+or `textureSizes` replace the model's pair, so the model's exceptions do not carry
+over. A copy is always joined. Judge it at
+`maxPoints` and at the size it is usually drawn: `/models.html` frames one model to
+its window, so the window's shorter side sets that size. Solar cells modelled as
+tiles a few millimetres above their panel break up at that error and change the
+array's colour; such a model gets no copy.
 
 To inspect the result, open `/models.html` in a satvis dev server.
 

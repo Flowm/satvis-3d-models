@@ -15,6 +15,15 @@
 #
 # A source is fetched from `path`, or built by `generator` (generators/), named
 # after its file in lower case.
+#
+# satvis draws up to 200 models at once, most at their minimum of 20 to 72 points,
+# and a model costs its vertex work at any size. A source over 30,000 triangles is
+# joined and simplified within 0.05% of its extent where that drops a fifth of them
+# or more, unseen up close, and gets a lower-detail copy for up to 100 points
+# (`lods`) where one keeps its look at that size. Arrays whose cells are tiles a few
+# millimetres above their panel break up when simplified for that size, so Fermi,
+# GPM, OCO-2, Swift, SDO and Jason-3 have no copy. A texture over 1024 px is not
+# seen on a satellite a few metres across.
 
 sources:
   nasa:
@@ -109,6 +118,8 @@ models:
     rotate:
       - { axis: zenith, degrees: -90 }
       - { axis: velocity, degrees: 180 }
+    lods:
+      - { file: LANDSAT-8-low.glb, maxPoints: 100 }
 
   # 0.919 brings the 5.53 m span to the documented 5.08 m (eoPortal). The white box
   # is the Cloud Profiling Radar's 1.85 m antenna, facing nadir, and the ring end
@@ -196,6 +207,8 @@ models:
     rotate:
       - { axis: velocity, degrees: 180 }
     scale: 83
+    lods:
+      - { file: GOES-16-low.glb, maxPoints: 100 }
 
   # CYGFM06 reentered in 2024. 1.05 brings the 1.59 m span to the published
   # 1.67 m (eoPortal). Turned so the patch antennas face nadir and the arrays,
@@ -214,6 +227,7 @@ models:
       - { axis: port, degrees: 90 }
     scale: 1.05
     stripFallbackTextures: true
+    textureSize: 1024
 
   # The first generation, built by TRW; TDRS 1 and 4 are retired. Already in
   # metres: the dishes measure 5.1 m against 4.9 m and span 13.1 m against 13.4 m,
@@ -244,6 +258,11 @@ models:
     rotate:
       - { axis: velocity, degrees: 180 }
     scale: 0.2234
+    join: true
+    simplify: 0.0005
+    singleSidedClosed: true
+    lods:
+      - { file: TDRS-8-low.glb, maxPoints: 100 }
 
   # The source's two textures are .tga files outside the GLB that the NASA repo
   # does not have, so the build must drop them; the panels keep their base colours.
@@ -260,6 +279,9 @@ models:
       - { axis: zenith, degrees: 90 }
     scale: 0.0005
     dropExternalTextures: true
+    join: true
+    simplify: 0.0005
+    singleSidedClosed: true
 
   # 0.911 brings the 18.7 m span to the published 17.03 m (eoPortal), leaving the
   # bus 7.4 m long against 6.85 m. MLS sits on the front and the other three
@@ -277,6 +299,11 @@ models:
       - { axis: velocity, degrees: 90 }
     scale: 0.911
     stripFallbackTextures: true
+    join: true
+    simplify: 0.0005
+    singleSidedClosed: true
+    lods:
+      - { file: AURA-low.glb, maxPoints: 100, textureSize: 256 }
 
   # Already in metres: 13.78 m long and 19.51 m across the arrays, against 13.8 m
   # and 19.5 m (NASA). The attitude is inertial; the aperture leads and the
@@ -288,6 +315,9 @@ models:
     rotate:
       - { axis: zenith, degrees: 90 }
     stripFallbackTextures: true
+    join: true
+    simplify: 0.0005
+    singleSidedClosed: true
 
   # 0.24 scales the 62.3-unit array span to the 15 m deployed width (NASA SVS),
   # which leaves the LAT 1.6 m across against 1.8 m. Already oriented: the LAT
@@ -313,6 +343,7 @@ models:
     scale: 0.527
     stripFallbackTextures: true
     baseColors: { foil_silver: [0.45, 0.46, 0.48], reflector: [0.55, 0.55, 0.57] }
+    textureSize: 1024
 
   # 0.1355 scales the 39.9-unit span to the 17.75 ft (5.41 m) width (NASA), which
   # makes the bus 1.8 m across against the 1.7 m diameter; the published 18.5 ft
@@ -374,6 +405,9 @@ models:
       - { name: SDO, noradId: 36395 }
     source: { id: nasa, path: "3D Models/Solar Dynamics Observatory/Solar Dynamics Observatory.glb" }
     scale: 0.169
+    join: true
+    simplify: 0.0005
+    singleSidedClosed: true
 
   # Sentinel-6B is a copy. Already in metres: 5.13 m x 4.37 m x 2.32 m against
   # 5.13 m x 4.17 m x 2.34 m (ESA). The Poseidon-4 dish and the retroreflector
@@ -388,6 +422,7 @@ models:
     rotate:
       - { axis: zenith, degrees: -90 }
     stripFallbackTextures: true
+    textureSize: 1024
 
   # A Jason-2 model: Jason-3 shares its Proteus bus and payload. 3.75 scales the
   # 0.255-unit platform to its 954 mm (Proteus spec), which makes the satellite 3.7 m x
@@ -406,6 +441,9 @@ models:
     scale: 3.75
     stripFallbackTextures: true
     baseColors: { Foil: [0.46, 0.29, 0.0] }
+    join: true
+    simplify: 0.0005
+    singleSidedClosed: true
 
   # Of the two MMS models, the one with materials. 1.99 scales the 1.76-unit deck
   # to 3.5 m (NASA); the 60 m wire booms stop at 14 m, and the axial booms at 8 m of
@@ -419,6 +457,8 @@ models:
       - { name: MMS 4, noradId: 40485 }
     source: { id: nasa, path: "3D Models/Magnetospheric Multiscale (MMS) (B)/Magnetospheric Multiscale (MMS) (B).glb" }
     scale: 1.99
+    lods:
+      - { file: MMS-1-low.glb, maxPoints: 100 }
 
   # THEMIS B and C became ARTEMIS, at the Moon. Already in metres: the bus is
   # 0.85 m x 0.84 m x 0.49 m against 84 cm x 84 cm x 51 cm (eoPortal), and the axial
@@ -445,6 +485,9 @@ models:
       - { axis: velocity, degrees: -90 }
       - { axis: port, degrees: -90 }
     scale: 0.0436
+    join: true
+    simplify: 0.0005
+    singleSidedClosed: true
 
   # China's space station, generated from published dimensions and CMSA's photos
   # (generators/tiangong.ts). The whole station is drawn on Tianhe's record; Wentian
@@ -901,6 +944,11 @@ models:
     rotate:
       - { axis: velocity, degrees: 180 }
     scale: 0.1155
+    # Drawn for every satellite on these buses at once. Within 0.1% it keeps 48,000
+    # of 181,000 triangles, unseen up close; within 0.2% the arrays' cells break up.
+    join: true
+    simplify: 0.001
+    singleSidedClosed: true
 
   - file: generic/EUROSTAR-3000.glb
     role: Generic geostationary communications satellite (Eurostar 3000 bus)

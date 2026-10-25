@@ -114,7 +114,10 @@ interface RecipeLod {
   maxPoints: number;
   /** In points at maxPoints; 1 when left out. */
   error?: number;
-  /** Replace the model's textureSize and textureSizes. */
+  /**
+   * Given either, these replace the model's pair: its textureSizes exceptions do not carry
+   * over, and a copy without its own textureSize keeps the model's.
+   */
   textureSize?: number;
   textureSizes?: Record<string, number>;
 }
@@ -218,7 +221,8 @@ for (const model of recipe.models) {
   for (const lod of model.lods ?? []) {
     const lodOutput = path.join(publicDir, lod.file);
     if (rebuild) {
-      const textures = lod.textureSize === undefined ? {} : { textureSize: lod.textureSize, textureSizes: lod.textureSizes };
+      const textures =
+        lod.textureSize === undefined && lod.textureSizes === undefined ? {} : { textureSize: lod.textureSize ?? model.textureSize, textureSizes: lod.textureSizes };
       await build({ ...model, ...textures, file: lod.file }, source, lodOutput, lod);
     }
     lods.push({ file: lod.file, maxPoints: lod.maxPoints, measured: await measure(lodOutput) });
@@ -410,7 +414,8 @@ async function build(model: RecipeModel, source: Source, output: string, lod?: R
   adjustMaterials(doc, model);
 
   // A generator makes one mesh per part; joined, a model is one draw call per material.
-  if (model.source.generator || model.join) {
+  // A lower-detail copy is drawn small and often, so it is always joined.
+  if (model.source.generator || model.join || lod) {
     await doc.transform(join({ keepNamed: false }));
   }
   if (lod) {
