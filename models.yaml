@@ -3,6 +3,10 @@
 # Every model in public/ and the satellites it depicts. satvis serves public/ at
 # /data/models/ and maps each NORAD id to its file. Dimensions are metres along
 # the velocity, across it and radially; the frame is described in build.yaml.
+#
+# A model's `lods` are lower-detail copies of its file, most detailed first. An app
+# may draw a copy while the model's bounding sphere spans at most its `maxPoints`
+# on screen, the copy with the smallest such maxPoints; above them all, `file`.
 
 models:
   - file: ISS-(ZARYA).glb
@@ -11,11 +15,20 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 3238376
+      bytes: 3282132
       dimensions: [ 73.305, 108.292, 30.343 ]
       triangles: 447638
       textures: [ 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 1024x1024 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 1024x1024 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp ]
       extensions: [ EXT_texture_webp, KHR_draco_mesh_compression ]
+    lods:
+      - file: ISS-(ZARYA)-low.glb
+        maxPoints: 100
+        measured:
+          bytes: 515860
+          dimensions: [ 73.267, 108.275, 28.307 ]
+          triangles: 42109
+          textures: [ 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp ]
+          extensions: [ EXT_texture_webp, KHR_draco_mesh_compression ]
   - file: LANDSAT-8.glb
     satellites:
       - { name: LANDSAT 8, noradId: 39084 }

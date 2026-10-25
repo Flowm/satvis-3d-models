@@ -48,6 +48,14 @@ models:
   # under the gap is the radiators' light grey. Each solar array blanket is two
   # coincident sheets, cells on one side and the backing on the other; drawn
   # double-sided they fight for the same pixels, so the arrays are single-sided.
+  #
+  # Its 448,000 triangles cost the same vertex work at any size: about 3 ms of GPU a
+  # frame on an iPad mini 6, tracked or 72 points wide. Up to 100 points, a copy
+  # simplified within one point (1.34 m) draws instead: 42,000 triangles, as many
+  # thousand small parts as fall under that pruned. It keeps the silhouette, arrays
+  # and radiators; only the thinnest truss members break up. Within half a point it
+  # keeps twice the triangles, and letting the simplifier cross UV seams tints the
+  # arrays. Its closed parts are single-sided, a quarter of the double-sided triangles.
   - file: ISS-(ZARYA).glb
     satellites:
       - { name: ISS (ZARYA), noradId: 25544 }
@@ -66,6 +74,9 @@ models:
     alphaMask: true
     opaqueMaterials: [Truss]
     singleSidedNodes: "Array|IROSA_Deployed"
+    singleSidedClosed: true
+    lods:
+      - { file: ISS-(ZARYA)-low.glb, maxPoints: 100, textureSize: 256 }
     # The S1 and P1 heat-rejection radiators map onto the truss atlas's solar cells;
     # they are white panels with dark seams (NASA, iss072e316172).
     nodeColors: { "^(S1|P1)_Radiator$": [0.85, 0.85, 0.86] }

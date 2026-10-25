@@ -5,9 +5,9 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { type Document, type Material, Node, NodeIO, Primitive, type Scene, Texture, type vec3, type vec4 } from "@gltf-transform/core";
+import { type Document, type Material, Node, NodeIO, Primitive, type Scene, Texture, type Transform, type vec3, type vec4 } from "@gltf-transform/core";
 import { ALL_EXTENSIONS, EXTTextureWebP } from "@gltf-transform/extensions";
-import { dedup, draco, flatten, getBounds, join, prune, simplify, transformMesh, weld } from "@gltf-transform/functions";
+import { compactPrimitive, dedup, draco, flatten, getBounds, join, prune, simplify, transformMesh, weld } from "@gltf-transform/functions";
 import draco3d from "draco3dgltf";
 import { MeshoptSimplifier } from "meshoptimizer";
 import sharp from "sharp";
@@ -94,6 +94,29 @@ interface RecipeModel {
    * front and back, that a double-sided material draws on top of each other.
    */
   singleSidedNodes?: string;
+  /**
+   * Draws closed, outward-wound parts single-sided: nothing outside sees their back faces,
+   * and the GPU culls back faces before rasterising. Open sheets and cut-out or blended
+   * materials, which show their insides, stay double-sided.
+   */
+  singleSidedClosed?: boolean;
+  /** Lower-detail copies, built from this recipe, for when the model is small on screen. */
+  lods?: RecipeLod[];
+}
+
+/**
+ * A lower-detail copy of a model. Its simplification follows from maxPoints: at that
+ * size no surface moves more than `error` points, and parts smaller than that go.
+ */
+interface RecipeLod {
+  file: string;
+  /** The model's bounding-sphere diameter on screen, in points, up to which apps draw this copy. */
+  maxPoints: number;
+  /** In points at maxPoints; 1 when left out. */
+  error?: number;
+  /** Replace the model's textureSize and textureSizes. */
+  textureSize?: number;
+  textureSizes?: Record<string, number>;
 }
 
 interface Recipe {
@@ -177,6 +200,7 @@ const recipe = YAML.parse(await readFile(recipePath, "utf8")) as Recipe;
 const filter = process.argv[2];
 checkSatellitesUnique(recipe.models);
 checkSources(recipe);
+checkLods(recipe.models);
 
 const entries = [];
 for (const model of recipe.models) {
@@ -185,10 +209,20 @@ for (const model of recipe.models) {
     throw new Error(`${model.file}: unknown source ${JSON.stringify(model.source.id)}`);
   }
   const output = path.join(publicDir, model.file);
-  if ((model.source.path || model.source.generator) && (!filter || model.file.includes(filter))) {
+  const rebuild = (model.source.path || model.source.generator) && (!filter || model.file.includes(filter));
+  if (rebuild) {
     await build(model, source, output);
   }
   const measured = await measure(output);
+  const lods = [];
+  for (const lod of model.lods ?? []) {
+    const lodOutput = path.join(publicDir, lod.file);
+    if (rebuild) {
+      const textures = lod.textureSize === undefined ? {} : { textureSize: lod.textureSize, textureSizes: lod.textureSizes };
+      await build({ ...model, ...textures, file: lod.file }, source, lodOutput, lod);
+    }
+    lods.push({ file: lod.file, maxPoints: lod.maxPoints, measured: await measure(lodOutput) });
+  }
   entries.push({
     file: model.file,
     ...(model.satellites ? { satellites: model.satellites } : {}),
@@ -197,8 +231,11 @@ for (const model of recipe.models) {
     credit: source.credit,
     license: source.license,
     measured,
+    ...(lods.length > 0 ? { lods } : {}),
   });
-  console.log(`${model.file}: ${measured.dimensions.map((d) => d.toFixed(2)).join(" x ")} m, ${measured.triangles} triangles, ${(measured.bytes / 1e3).toFixed(0)} kB`);
+  for (const { file, measured: { dimensions, triangles, bytes } } of [{ file: model.file, measured }, ...lods]) {
+    console.log(`${file}: ${dimensions.map((d) => d.toFixed(2)).join(" x ")} m, ${triangles} triangles, ${(bytes / 1e3).toFixed(0)} kB`);
+  }
 }
 
 const header = [
@@ -207,6 +244,10 @@ const header = [
   "# Every model in public/ and the satellites it depicts. satvis serves public/ at",
   "# /data/models/ and maps each NORAD id to its file. Dimensions are metres along",
   "# the velocity, across it and radially; the frame is described in build.yaml.",
+  "#",
+  "# A model's `lods` are lower-detail copies of its file, most detailed first. An app",
+  "# may draw a copy while the model's bounding sphere spans at most its `maxPoints`",
+  "# on screen, the copy with the smallest such maxPoints; above them all, `file`.",
 ];
 // One line per satellite and per list of numbers or names, as in build.yaml.
 const FLOW_KEYS = new Set(["satellites", "dimensions", "textures", "extensions"]);
@@ -243,6 +284,25 @@ function checkSatellitesUnique(models: RecipeModel[]): void {
   }
 }
 
+/** Every file written once, and each model's copies ordered by falling maxPoints, as the manifest promises. */
+function checkLods(models: RecipeModel[]): void {
+  const files = new Set<string>();
+  for (const model of models) {
+    for (const file of [model.file, ...(model.lods ?? []).map((lod) => lod.file)]) {
+      if (files.has(file)) {
+        throw new Error(`${file} is written twice`);
+      }
+      files.add(file);
+    }
+    (model.lods ?? []).reduce((previous, { file, maxPoints }) => {
+      if (!(maxPoints > 0 && maxPoints < previous)) {
+        throw new Error(`${file}: a copy's maxPoints must be positive and below the one before it`);
+      }
+      return maxPoints;
+    }, Infinity);
+  }
+}
+
 /**
  * Every model's source, checked before a filtered build skips any: a known source, a
  * generator that exists, and not both a generator and a path.
@@ -274,9 +334,9 @@ function sceneOf(doc: Document, file: string): Scene {
 /**
  * Builds one model into `output`: loads it, removes the listed nodes, bakes every
  * transform into the vertices, joins a generated model's parts, and writes it
- * Draco-compressed.
+ * Draco-compressed. Given a `lod`, it builds that lower-detail copy instead.
  */
-async function build(model: RecipeModel, source: Source, output: string): Promise<void> {
+async function build(model: RecipeModel, source: Source, output: string, lod?: RecipeLod): Promise<void> {
   const doc = await load(model, source);
   const root = doc.getRoot();
 
@@ -353,8 +413,17 @@ async function build(model: RecipeModel, source: Source, output: string): Promis
   if (model.source.generator || model.join) {
     await doc.transform(join({ keepNamed: false }));
   }
-  if (model.simplify !== undefined) {
+  if (lod) {
+    const { min, max } = getBounds(scene);
+    // Cesium's bounding sphere spans the box's diagonal.
+    const diameter = Math.hypot(max[0] - min[0], max[1] - min[1], max[2] - min[2]);
+    await doc.transform(weld(), simplifyWithin((diameter / lod.maxPoints) * (lod.error ?? 1)));
+  } else if (model.simplify !== undefined) {
     await doc.transform(weld(), simplify({ simplifier: MeshoptSimplifier, ratio: 0, error: model.simplify }));
+  }
+  // After simplifying, which cannot collapse across the split it makes.
+  if (model.singleSidedClosed) {
+    singleSideClosedParts(doc);
   }
   await resizeTextures(doc, model);
   await doc.transform(prune(), dedup(), draco());
@@ -394,6 +463,137 @@ function makeSingleSided(doc: Document, model: RecipeModel): void {
       primitive.setMaterial(copy);
     }
   }
+}
+
+/**
+ * Moves the closed, outward-wound shells of each opaque double-sided primitive into a
+ * primitive of their own with a single-sided copy of the material, under the same name.
+ */
+function singleSideClosedParts(doc: Document): void {
+  const copies = new Map<Material, Material>();
+  for (const mesh of doc.getRoot().listMeshes()) {
+    for (const primitive of mesh.listPrimitives()) {
+      const material = primitive.getMaterial();
+      if (!material?.getDoubleSided() || material.getAlphaMode() !== "OPAQUE" || primitive.getMode() !== Primitive.Mode.TRIANGLES) {
+        continue;
+      }
+      const closed = closedTriangles(primitive);
+      if (!closed.includes(true)) {
+        continue;
+      }
+      let copy = copies.get(material);
+      if (!copy) {
+        copy = material.clone().setDoubleSided(false);
+        copies.set(material, copy);
+      }
+      if (!closed.includes(false)) {
+        primitive.setMaterial(copy);
+        continue;
+      }
+      const indices = primitive.getIndices();
+      const corners = indices?.getArray() ?? Uint32Array.from({ length: primitive.getAttribute("POSITION")!.getCount() }, (_, i) => i);
+      const triangles = (shells: boolean): Uint32Array<ArrayBuffer> => Uint32Array.from(closed.flatMap((isClosed, t) => (isClosed === shells ? [corners[3 * t]!, corners[3 * t + 1]!, corners[3 * t + 2]!] : [])));
+      const shell = primitive.clone().setMaterial(copy);
+      shell.setIndices(doc.createAccessor().setType("SCALAR").setArray(triangles(true)));
+      primitive.setIndices(doc.createAccessor().setType("SCALAR").setArray(triangles(false)));
+      mesh.addPrimitive(shell);
+      compactPrimitive(shell);
+      compactPrimitive(primitive);
+    }
+  }
+}
+
+/**
+ * Whether each triangle belongs to a closed, outward-wound shell: its vertices welded
+ * by position, every edge of the shell borders exactly one triangle each way, and the
+ * shell encloses a positive volume.
+ */
+function closedTriangles(primitive: Primitive): boolean[] {
+  const positions = primitive.getAttribute("POSITION")!;
+  const indices = primitive.getIndices()?.getArray();
+  const count = indices ? indices.length / 3 : positions.getCount() / 3;
+  const welded = new Map<string, number>();
+  const vertex = (corner: number): number => {
+    const key = positions.getElement(indices ? indices[corner]! : corner, []).join();
+    let id = welded.get(key);
+    if (id === undefined) {
+      id = welded.size;
+      welded.set(key, id);
+    }
+    return id;
+  };
+  const triangles = Array.from({ length: count }, (_, t) => [vertex(3 * t), vertex(3 * t + 1), vertex(3 * t + 2)] as const);
+
+  const parent = Array.from({ length: welded.size }, (_, i) => i);
+  const find = (v: number): number => {
+    while (parent[v] !== v) {
+      v = parent[v] = parent[parent[v]!]!;
+    }
+    return v;
+  };
+  for (const [a, b, c] of triangles) {
+    parent[find(b)] = find(a);
+    parent[find(c)] = find(a);
+  }
+  const shells = new Map<number, number[]>();
+  triangles.forEach(([a], t) => {
+    const root = find(a);
+    const shell = shells.get(root);
+    if (shell) {
+      shell.push(t);
+    } else {
+      shells.set(root, [t]);
+    }
+  });
+
+  const closed = Array.from({ length: count }, () => false);
+  const n = welded.size;
+  for (const shell of shells.values()) {
+    const edges = new Map<number, number>();
+    let volume = 0;
+    for (const t of shell) {
+      const [a, b, c] = triangles[t]!;
+      for (const [from, to] of [[a, b], [b, c], [c, a]] as const) {
+        edges.set(from * n + to, (edges.get(from * n + to) ?? 0) + 1);
+      }
+      const [[px, py, pz], [qx, qy, qz], [rx, ry, rz]] = [3 * t, 3 * t + 1, 3 * t + 2].map((corner) => positions.getElement(indices ? indices[corner]! : corner, [0, 0, 0]) as vec3) as [vec3, vec3, vec3];
+      volume += px * (qy * rz - qz * ry) - py * (qx * rz - qz * rx) + pz * (qx * ry - qy * rx);
+    }
+    const sealed = [...edges].every(([edge, uses]) => uses === 1 && edges.get((edge % n) * n + Math.floor(edge / n)) === 1);
+    if (sealed && volume > 0) {
+      for (const t of shell) {
+        closed[t] = true;
+      }
+    }
+  }
+  return closed;
+}
+
+/**
+ * Simplifies every primitive until a vertex would move more than `error` metres, and
+ * drops disconnected parts smaller than that. glTF-Transform's simplify measures its
+ * error against each mesh's extent and cannot prune.
+ */
+function simplifyWithin(error: number): Transform {
+  return async (doc) => {
+    await MeshoptSimplifier.ready;
+    for (const mesh of doc.getRoot().listMeshes()) {
+      for (const primitive of mesh.listPrimitives()) {
+        const indices = primitive.getIndices();
+        const position = primitive.getAttribute("POSITION");
+        if (primitive.getMode() !== Primitive.Mode.TRIANGLES || !indices || !position) {
+          continue;
+        }
+        const [simplified] = MeshoptSimplifier.simplify(Uint32Array.from(indices.getArray()!), Float32Array.from(position.getArray()!), 3, 0, error, ["ErrorAbsolute", "Prune"]);
+        if (simplified.length === 0) {
+          primitive.dispose();
+          continue;
+        }
+        primitive.setIndices(doc.createAccessor().setType("SCALAR").setArray(new Uint32Array(simplified)));
+        compactPrimitive(primitive);
+      }
+    }
+  };
 }
 
 /** Gives the nodes each nodeColors pattern matches untextured copies of their materials in its colour. */

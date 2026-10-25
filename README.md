@@ -17,6 +17,22 @@ manifest that tells it which satellite uses which model.
   path in `public/`; satvis reads the manifest to give each listed satellite that
   file. Do not edit it.
 
+A model may list `lods`, lower-detail copies of its file for when it is small on
+screen, most detailed first:
+
+```yaml
+- file: ISS-(ZARYA).glb
+  lods:
+    - file: ISS-(ZARYA)-low.glb
+      maxPoints: 100
+      measured: { … }
+```
+
+An app may draw a copy while the model's bounding sphere spans at most its
+`maxPoints` points on screen, the copy with the smallest such `maxPoints`; above
+them all it draws `file`. The sphere is the full model's: Cesium sizes it from the
+bounding box's diagonal. An app that ignores `lods` draws `file` at every size.
+
 A model lists every satellite it depicts, so one file serves a constellation; a
 NORAD id may appear under one model only. A constellation too large to list names
 its buses instead, as GCAT spells them (`Starlink V2M`), and a bus may also appear
@@ -61,10 +77,21 @@ nodes by a name pattern, `join` and `simplify` merge and thin its meshes, and
 Cesium draws a source: `mirror` undoes a mirror image, `matte` replaces metallic
 and normal maps, `alphaMask` and `opaqueMaterials` stop alpha-blended surfaces
 from showing through each other, and `singleSidedNodes` keeps a sheet modelled as
-two coincident faces from drawing both. Others fix the source's own mistakes:
+two coincident faces from drawing both. `singleSidedClosed` draws every closed,
+outward-wound part single-sided, so the GPU culls its back faces; open sheets and
+cut-out materials stay double-sided. Others fix the source's own mistakes:
 `baseColors` and `nodeColors` replace a wrong colour texture, by material or by
 node, and `turnNodes` turns a joint the source poses wrongly. `build.ts` documents
 each field.
+
+A recipe's `lods` builds each lower-detail copy from the same recipe: its `file`,
+the `maxPoints` it is drawn up to, and an `error` in points (1 when left out). The
+copy is simplified until a surface would move more than `error` points at
+`maxPoints`, and parts smaller than that are dropped, so the copy follows from
+the size it is drawn at rather than from a triangle count. Its own `textureSize`
+and `textureSizes` replace the model's. Judge a copy at `maxPoints` and at the
+size it is usually drawn: `/models.html` frames one model to its window, so the
+window's shorter side sets that size.
 
 To inspect the result, open `/models.html` in a satvis dev server.
 
