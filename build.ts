@@ -676,7 +676,14 @@ async function encodeTextures(doc: Document, model: RecipeModel): Promise<void> 
   if (missing.length > 0) {
     throw new Error(`${model.file}: textureSizes names no texture ${missing.join(", ")}`);
   }
-  const alpha = alphaUses(doc);
+  const withAlpha = new Set<Texture>();
+  for (const texture of textures) {
+    const image = texture.getImage();
+    if (image && (await sharp(image).metadata()).hasAlpha) {
+      withAlpha.add(texture);
+    }
+  }
+  const alpha = alphaUses(doc, withAlpha);
   for (const texture of doc.getRoot().listTextures()) {
     const image = texture.getImage();
     if (!image) {
@@ -717,17 +724,20 @@ async function encodeTextures(doc: Document, model: RecipeModel): Promise<void> 
  * How each base colour texture's alpha is drawn, with the base colour factor's alpha
  * folded into it: the cutoff tests texture alpha times factor alpha, and an opaque
  * material ignores both. A texture that materials draw differently is copied, one copy
- * per use, so a blended material keeps its own.
+ * per use, so a blended material keeps its own. `withAlpha` holds the textures that
+ * have an alpha channel, the only ones a factor can be folded into.
  */
-function alphaUses(doc: Document): Map<Texture, AlphaUse> {
+function alphaUses(doc: Document, withAlpha: Set<Texture>): Map<Texture, AlphaUse> {
   const uses = new Map<Texture, Map<string, { use: AlphaUse; materials: Material[] }>>();
   for (const material of doc.getRoot().listMaterials()) {
     const mode = material.getAlphaMode();
     const [r, g, b, factor] = material.getBaseColorFactor();
     const texture = material.getBaseColorTexture();
     let use: AlphaUse = { mode: "keep" };
-    // A cut-out whose factor alone falls below its cutoff draws nothing, and stays so.
-    if (mode === "OPAQUE" || (mode === "MASK" && (texture ? factor > 0 : factor >= material.getAlphaCutoff()))) {
+    // Without texture alpha the factor alone meets the cutoff or not, everywhere: a
+    // cut-out it fails draws nothing, and stays so.
+    const folds = texture !== null && withAlpha.has(texture);
+    if (mode === "OPAQUE" || (mode === "MASK" && (folds ? factor > 0 : factor >= material.getAlphaCutoff()))) {
       use = mode === "OPAQUE" ? { mode: "opaque" } : { mode: "mask", cutoff: material.getAlphaCutoff() / factor };
       material.setBaseColorFactor([r, g, b, 1]);
     }
