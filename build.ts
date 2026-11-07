@@ -430,7 +430,7 @@ async function build(model: RecipeModel, source: Source, output: string, lod?: R
   if (model.singleSidedClosed) {
     singleSideClosedParts(doc);
   }
-  await resizeTextures(doc, model);
+  await encodeTextures(doc, model);
   await doc.transform(prune(), dedup(), draco());
   await mkdir(path.dirname(output), { recursive: true });
   await writeFile(output, await io.writeBinary(doc));
@@ -656,30 +656,102 @@ function adjustMaterials(doc: Document, model: RecipeModel): void {
 }
 
 /**
- * Resizes each texture to fit its recipe size, textureSizes before textureSize, and
- * re-encodes it as WebP. glTF-Transform's textureCompress cannot exempt textures by
+ * What a base colour texture's alpha must become: 255 for opaque materials, 0 or 255
+ * split at a cut-out's cutoff, or as it is for blended ones. Cesium writes a model's
+ * alpha into satvis's transparent canvas whatever the alpha mode, so anything between
+ * shows the page through the model; order-independent translucency used to hide it.
+ */
+type AlphaUse = { mode: "opaque" } | { mode: "mask"; cutoff: number } | { mode: "keep" };
+
+/**
+ * Resizes each texture to fit its recipe size, textureSizes before textureSize, settles
+ * the alpha of base colour textures (alphaUses), and re-encodes each changed texture
+ * once, resized ones as WebP. glTF-Transform's textureCompress cannot exempt textures by
  * name: its pattern also tests each texture's URI, empty in a GLB.
  */
-async function resizeTextures(doc: Document, model: RecipeModel): Promise<void> {
-  if (model.textureSize === undefined) {
-    return;
-  }
+async function encodeTextures(doc: Document, model: RecipeModel): Promise<void> {
   const sizes = new Map(Object.entries(model.textureSizes ?? {}));
   const textures = doc.getRoot().listTextures();
   const missing = [...sizes.keys()].filter((name) => !textures.some((texture) => texture.getName() === name));
   if (missing.length > 0) {
     throw new Error(`${model.file}: textureSizes names no texture ${missing.join(", ")}`);
   }
-  doc.createExtension(EXTTextureWebP).setRequired(true);
-  for (const texture of textures) {
+  const alpha = alphaUses(doc);
+  for (const texture of doc.getRoot().listTextures()) {
     const image = texture.getImage();
     if (!image) {
       continue;
     }
-    const size = sizes.get(texture.getName()) ?? model.textureSize;
-    const webp = await sharp(image).resize(size, size, { fit: "inside", withoutEnlargement: true }).webp({ quality: 80 }).toBuffer();
-    texture.setImage(new Uint8Array(webp)).setMimeType("image/webp").setURI("");
+    const size = model.textureSize === undefined ? undefined : (sizes.get(texture.getName()) ?? model.textureSize);
+    let pipeline = size === undefined ? sharp(image) : sharp(image).resize(size, size, { fit: "inside", withoutEnlargement: true });
+    let changed = size !== undefined;
+    const use = alpha.get(texture) ?? { mode: "keep" };
+    if (use.mode !== "keep" && (await sharp(image).metadata()).hasAlpha) {
+      // After resizing, which blends a cut-out's edges back into partial alpha.
+      const { data, info } = await pipeline.raw().toBuffer({ resolveWithObject: true });
+      const threshold = use.mode === "mask" ? use.cutoff * 255 : 0;
+      for (let i = info.channels - 1; i < data.length; i += info.channels) {
+        const settled = data[i]! >= threshold ? 255 : 0;
+        changed ||= data[i] !== settled;
+        data[i] = settled;
+      }
+      pipeline = sharp(data, { raw: { width: info.width, height: info.height, channels: info.channels } });
+      if (use.mode === "opaque") {
+        pipeline = pipeline.removeAlpha();
+      }
+    }
+    if (!changed) {
+      continue;
+    }
+    // WebP alpha is lossless at sharp's default alphaQuality, so a cut-out stays 0 or 255.
+    const webp = size !== undefined || texture.getMimeType() === "image/webp";
+    const encoded = webp ? await pipeline.webp({ quality: 80 }).toBuffer() : await pipeline.png().toBuffer();
+    texture.setImage(new Uint8Array(encoded)).setMimeType(webp ? "image/webp" : "image/png").setURI("");
+    if (webp) {
+      doc.createExtension(EXTTextureWebP).setRequired(true);
+    }
   }
+}
+
+/**
+ * How each base colour texture's alpha is drawn, with the base colour factor's alpha
+ * folded into it: the cutoff tests texture alpha times factor alpha, and an opaque
+ * material ignores both. A texture that materials draw differently is copied, one copy
+ * per use, so a blended material keeps its own.
+ */
+function alphaUses(doc: Document): Map<Texture, AlphaUse> {
+  const uses = new Map<Texture, Map<string, { use: AlphaUse; materials: Material[] }>>();
+  for (const material of doc.getRoot().listMaterials()) {
+    const mode = material.getAlphaMode();
+    const [r, g, b, factor] = material.getBaseColorFactor();
+    const texture = material.getBaseColorTexture();
+    let use: AlphaUse = { mode: "keep" };
+    // A cut-out whose factor alone falls below its cutoff draws nothing, and stays so.
+    if (mode === "OPAQUE" || (mode === "MASK" && (texture ? factor > 0 : factor >= material.getAlphaCutoff()))) {
+      use = mode === "OPAQUE" ? { mode: "opaque" } : { mode: "mask", cutoff: material.getAlphaCutoff() / factor };
+      material.setBaseColorFactor([r, g, b, 1]);
+    }
+    if (!texture) {
+      continue;
+    }
+    const key = JSON.stringify(use);
+    const byUse = uses.get(texture) ?? new Map();
+    uses.set(texture, byUse);
+    byUse.set(key, { use, materials: [...(byUse.get(key)?.materials ?? []), material] });
+  }
+  const result = new Map<Texture, AlphaUse>();
+  for (const [texture, byUse] of uses) {
+    const [first, ...others] = [...byUse.values()];
+    result.set(texture, first!.use);
+    for (const { use, materials } of others) {
+      const copy = texture.clone();
+      for (const material of materials) {
+        material.setBaseColorTexture(copy);
+      }
+      result.set(copy, use);
+    }
+  }
+  return result;
 }
 
 /**

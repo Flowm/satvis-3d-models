@@ -15,7 +15,7 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 3282132
+      bytes: 3158020
       dimensions: [ 73.305, 108.292, 30.343 ]
       triangles: 447638
       textures: [ 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 1024x1024 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp, 1024x1024 image/webp, 512x512 image/webp, 512x512 image/webp, 512x512 image/webp ]
@@ -24,7 +24,7 @@ models:
       - file: ISS-(ZARYA)-low.glb
         maxPoints: 100
         measured:
-          bytes: 515860
+          bytes: 475228
           dimensions: [ 73.267, 108.275, 28.307 ]
           triangles: 42109
           textures: [ 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp, 256x256 image/webp ]
@@ -102,7 +102,7 @@ models:
     credit: NASA
     license: Not subject to US copyright. Credit NASA; NASA insignia and logos are not free to use, and use must not imply NASA endorsement.
     measured:
-      bytes: 136952
+      bytes: 131528
       dimensions: [ 4.183, 8.959, 2.569 ]
       triangles: 4016
       textures: [ 256x256 image/webp, 1024x1024 image/webp, 1024x1024 image/webp, 256x256 image/webp, 1024x1024 image/webp ]

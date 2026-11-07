@@ -66,9 +66,15 @@ The build fetches each source into `.cache/` or runs its generator, removes the
 listed nodes, drops the PNG/JPEG fallbacks of WebP textures and any textures whose
 images the source repository lacks, untextures primitives that have no texture
 coordinates (Cesium's shader fails on them and stops rendering), bakes every node
-transform, the rotation and scale included, into the vertices, writes it
-Draco-compressed, and measures every model into `models.yaml`. The baking is for
-Cesium, which sizes a rotated model's bounding sphere wrongly. A generated
+transform, the rotation and scale included, into the vertices, settles the alpha
+of base colour textures, writes it Draco-compressed, and measures every model into
+`models.yaml`. The baking is for Cesium, which sizes a rotated model's bounding
+sphere wrongly. So is the alpha: Cesium writes a model's alpha into satvis's
+transparent canvas whatever its alpha mode, so the page shows through any texel
+below 255. An opaque material's texture loses its alpha channel, and a cut-out's
+becomes 0 or 255 at its cutoff, after resizing; a texture that materials draw
+differently is copied, and blended materials keep theirs. Texture filtering still
+blends a cut-out's edges, which only Cesium's shader can snap. A generated
 model's parts are then joined, one primitive per material. A model with neither
 a source path nor a generator is kept as it is and only measured.
 
